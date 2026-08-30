@@ -63,7 +63,19 @@ export function resolveNextTraining(
   const defaultDateKey = toDateKey(computeDefaultSessionDate(settings.weekday, settings.time, now));
 
   if (override) {
-    return { defaultDateKey, dateKey: override.date, time: override.time, isOverridden: true };
+    if (sessionDateTime(override.date, override.time).getTime() > now.getTime()) {
+      return { defaultDateKey, dateKey: override.date, time: override.time, isOverridden: true };
+    }
+    // The override moved this week's session earlier than its own default
+    // clock time (e.g. Wed 20:00 → Tue 19:00) and it has already happened.
+    // That week's slot doesn't revert to the original day/time once it's
+    // passed — it was moved, not duplicated — so skip straight to the
+    // following week's default instead of still reporting the passed
+    // session as "next" until the original Wed-20:00 moment rolls by.
+    const skipPastDateKey = toDateKey(
+      computeDefaultSessionDate(settings.weekday, settings.time, sessionDateTime(defaultDateKey, settings.time)),
+    );
+    return { defaultDateKey: skipPastDateKey, dateKey: skipPastDateKey, time: settings.time, isOverridden: false };
   }
   return { defaultDateKey, dateKey: defaultDateKey, time: settings.time, isOverridden: false };
 }
