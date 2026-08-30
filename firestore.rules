@@ -1,0 +1,145 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Any signed-in user can look up teammates' names (roster queries by teamCode),
+    // but you can only ever write your own profile document.
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Team files: any signed-in teammate can see the list. Writes only ever
+    // happen server-side (Admin SDK, via /api/upload-team-file), which
+    // bypasses these rules entirely — so client writes are fully locked out
+    // here on purpose, to guarantee every upload goes through text extraction.
+    match /team_files/{fileId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // Extracted file content — only the server (Admin SDK, via
+    // /api/ask-team-bot and /api/upload-team-file) ever touches this.
+    match /team_knowledge/{docId} {
+      allow read: if false;
+      allow write: if false;
+    }
+
+    // Practice plans: any signed-in teammate can see them; only the coach
+    // who created a plan can create or delete it. Plain client writes are
+    // fine here — no server-side processing needed, unlike file uploads.
+    match /team_practice_plans/{planId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.createdBy == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.createdBy == request.auth.uid;
+    }
+
+    // Coach-private reference files, used only to help draft training plans.
+    // Never visible to players — only the coach who uploaded a file can read
+    // it, and only the server (Admin SDK) ever writes to these.
+    match /coach_files/{fileId} {
+      allow read: if request.auth != null && resource.data.uploadedBy == request.auth.uid;
+      allow write: if false;
+    }
+
+    match /coach_knowledge/{docId} {
+      allow read: if false;
+      allow write: if false;
+    }
+
+    // The single upcoming game/practice for a team. Any teammate can read it;
+    // only that team's own coach can set it (checked via her profile doc).
+    match /team_events/{eventTeamCode} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach'
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.teamCode == eventTeamCode;
+
+      // Each player's own RSVP for that event — she can only write her own.
+      match /rsvps/{uid} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Global official rules text (same content for every team, seeded once
+    // by an admin script) — only the server (Admin SDK, via /api/ask-rules-bot)
+    // ever reads this.
+    match /official_rules_knowledge/{docId} {
+      allow read: if false;
+      allow write: if false;
+    }
+
+    // Which single player is team captain. Any teammate can read it (for the
+    // crown badge + roster ordering); only that team's own coach can set it.
+    match /team_captains/{captainTeamCode} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach'
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.teamCode == captainTeamCode;
+    }
+
+    // Upcoming games (opponent + date/time), later filled in with match
+    // results (sets/score/win-loss). Any teammate can read the list; only
+    // the current captain can add or remove entries; the captain or that
+    // team's coach can record/edit a match result.
+    match /team_games/{gameId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.teamCode is string
+        && get(/databases/$(database)/documents/team_captains/$(request.resource.data.teamCode)).data.captainUid == request.auth.uid;
+      allow update: if request.auth != null
+        && (
+          get(/databases/$(database)/documents/team_captains/$(resource.data.teamCode)).data.captainUid == request.auth.uid
+          || (
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach'
+            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.teamCode == resource.data.teamCode
+          )
+        );
+      allow delete: if request.auth != null
+        && get(/databases/$(database)/documents/team_captains/$(resource.data.teamCode)).data.captainUid == request.auth.uid;
+    }
+
+    // A game's lineup (planned single six, or one per set, keyed by the
+    // matching team_games doc id). Exclusively the coach's tool — unlike
+    // match results, the captain has no write access here. Team ownership
+    // is checked against the source team_games doc, not a client-supplied
+    // field, so it can't be spoofed.
+    match /team_game_lineups/{gameId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach'
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.teamCode
+           == get(/databases/$(database)/documents/team_games/$(gameId)).data.teamCode;
+    }
+
+    // Captain-set weekly default training day/time (e.g. every Tuesday 20:00).
+    // Any teammate can read it; only that team's captain can change it.
+    match /team_training_settings/{teamCode} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && get(/databases/$(database)/documents/team_captains/$(teamCode)).data.captainUid == request.auth.uid;
+    }
+
+    // Per-occurrence overrides, keyed by the never-changing default weekly
+    // slot date so a moved/postponed training can always be looked up.
+    match /team_training_overrides/{teamCode}/dates/{defaultDate} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && get(/databases/$(database)/documents/team_captains/$(teamCode)).data.captainUid == request.auth.uid;
+    }
+
+    // A single resolved training session: each player's own RSVP, and the
+    // captain-managed list of manually added guest players.
+    match /team_training_sessions/{teamCode}/dates/{sessionDate} {
+      match /rsvps/{uid} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /guests/{guestId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null
+          && get(/databases/$(database)/documents/team_captains/$(teamCode)).data.captainUid == request.auth.uid;
+      }
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://localhost:3001/ -o /tmp/auth3.html -w \"HTTP:%{http_code}\\\\n\")",
+      "Read(//tmp/**)",
+      "Bash(curl -s -o /dev/null -w \"dashboard HTTP:%{http_code}\\\\n\" http://localhost:3001/dashboard)",
+      "Bash(npx tsc *)",
+      "Bash(curl -s http://localhost:3000/ -o /tmp/authlive.html -w \"HTTP:%{http_code}\\\\n\")",
+      "Bash(curl -s http://localhost:3000/ -o /tmp/authcloud.html -w \"HTTP:%{http_code}\\\\n\")",
+      "Bash(grep -o \"animate-spin\" /tmp/authcloud.html | head -1)",
+      "Bash(curl -s -o /dev/null -w \"HTTP:%{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -s http://localhost:3000/ -o /tmp/final.html -w \"HTTP:%{http_code}\\\\n\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP:%{http_code}\\\\n\" http://localhost:3000/ *)",
+      "Bash(npm install *)",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('/c/Users/Admin/mamanet-tactic/node_modules/pdf-parse/package.json'\\).exports, null, 2\\)\\)\")",
+      "Bash(npm view *)",
+      "Bash(curl -s -o /tmp/upload_test.json -w \"HTTP:%{http_code}\\\\n\" -X POST http://localhost:3000/api/upload-team-file)",
+      "Bash(firebase firestore:rules:get)",
+      "Bash(firebase deploy *)",
+      "Bash(find \"C:/Users/Admin/AppData/Local/Temp/claude\" -maxdepth 6 -iname \"*.png\" -newer \"/c/Users/Admin/mamanet-tactic/package.json\" 2>/dev/null | head -20 *)",
+      "Read(//c/Users/Admin/AppData/Local/Temp/claude/**)",
+      "Read(//c/Users/Admin/AppData/Local/Temp/**)",
+      "Bash(ls -la \"C:/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-mamanet-tactic/8f828452-a6be-45a9-a02e-447c53681cd6/scratchpad\" 2>&1 *)",
+      "Read(//c/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-mamanet-tactic/**)",
+      "Read(//c/Users/Admin/**)",
+      "Bash(ls -la \"/c/Users/Admin/Downloads/\" | grep -i \"Gemini_Generated_Image_9uj9rm9uj9rm9uj9\")",
+      "Read(//c/Users/Admin/Downloads//**)",
+      "Bash(curl -s -o /dev/null -w \"logo.png: %{http_code}\\\\n\" http://localhost:3000/logo.png)",
+      "Bash(curl -s -o /dev/null -w \"manifest.json: %{http_code}\\\\n\" http://localhost:3000/manifest.json)",
+      "Bash(curl -s -o /dev/null -w \"favicon-32.png: %{http_code}\\\\n\" http://localhost:3000/favicon-32.png)",
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(ls \"/c/Users/Admin/Downloads/\" | grep -i \"ליברו\\\\|חוקת מאמאנט\")",
+      "Bash(curl -s -o /tmp/rules_test.json -w \"HTTP:%{http_code}\\\\n\" -X POST http://localhost:3000/api/ask-rules-bot)",
+      "Bash(tail -n 60 /tmp/nextdev14.log)"
+    ]
+  }
+}
