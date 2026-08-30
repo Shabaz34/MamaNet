@@ -26,4 +26,4 @@ if (isFirebaseConfigured) {
   functions = getFunctions(app);
 }
 
-export { auth, db, functions };
+export { app, auth, db, functions };

@@ -13,6 +13,7 @@ import NextGameCard from './NextGameCard';
 import EnterGamesView from './EnterGamesView';
 import MatchHistoryView from './MatchHistoryView';
 import DrawerMenu, { DrawerItem } from './DrawerMenu';
+import PushPermissionPrompt from './PushPermissionPrompt';
 
 type View = 'dashboard' | 'chat' | 'rules' | 'games' | 'results';
 
@@ -133,6 +134,8 @@ export default function PlayerDashboard({
           {/* spacer to balance the hamburger button so the header block stays centered */}
           <div className="w-11 h-11 shrink-0" aria-hidden="true" />
         </div>
+
+        <PushPermissionPrompt uid={playerUid} />
 
         {/* Hero: upcoming match/training + RSVP */}
         <NextEventCard teamCode={teamCode} uid={playerUid} isCaptain={isCaptain} />

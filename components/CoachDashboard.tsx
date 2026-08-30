@@ -13,6 +13,7 @@ import KnowledgeBaseView from './KnowledgeBaseView';
 import RulesChatBot from './RulesChatBot';
 import MatchHistoryView from './MatchHistoryView';
 import DrawerMenu, { DrawerItem } from './DrawerMenu';
+import PushPermissionPrompt from './PushPermissionPrompt';
 
 type View = 'dashboard' | 'plan' | 'knowledge' | 'rules' | 'results';
 
@@ -90,6 +91,8 @@ export default function CoachDashboard({
         <p className="text-[15px] font-bold text-slate-800 text-center">
           שלום, <span className="text-violet-600">{coachName}</span> 👋
         </p>
+
+        <PushPermissionPrompt uid={coachUid} />
 
         <TeamRoster players={roster} captainUid={captainUid} />
 

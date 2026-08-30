@@ -1,0 +1,19 @@
+name: Push notification cron
+
+on:
+  schedule:
+    # Every 5 minutes. GitHub doesn't guarantee exact timing under load —
+    # a few minutes of drift is fine here since /api/cron/notify gates each
+    # push behind a "already notified" flag, so a late run just sends late,
+    # never twice.
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger notification check
+        run: |
+          curl -sf -X GET "${{ secrets.SITE_URL }}/api/cron/notify" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

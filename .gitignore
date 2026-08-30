@@ -4,3 +4,6 @@ node_modules
 tsconfig.tsbuildinfo
 _archive
 .claude/settings.local.json
+
+# Firebase CLI debug logs
+firebase-debug.*.log

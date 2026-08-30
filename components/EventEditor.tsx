@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { CalendarClock, ChevronDown, Loader2 } from 'lucide-react';
 import { useTeamEvent, saveTeamEvent, type TeamEvent } from '@/lib/teamHooks';
+import { auth } from '@/lib/firebase';
 
 const EMPTY_EVENT: TeamEvent = { title: '', type: 'practice', date: '', time: '' };
 
@@ -19,14 +20,33 @@ export default function EventEditor({ teamCode, coachUid }: { teamCode: string; 
   async function handleSave(e: FormEvent) {
     e.preventDefault();
     if (!form.date || !form.time) return;
+    // Only ping everyone when this is a genuinely new event or the date/time
+    // moved — editing just the title on an unchanged date shouldn't re-notify.
+    const isNewOrRescheduled = !event || event.date !== form.date || event.time !== form.time;
     setSaving(true);
     try {
       await saveTeamEvent(teamCode, form, coachUid);
       setOpen(false);
+      if (isNewOrRescheduled) notifyEventOpened(form.type);
     } catch (err) {
       console.error('Failed to save team event:', err);
     } finally {
       setSaving(false);
+    }
+  }
+
+  // Best-effort — a failed push shouldn't block saving the event.
+  async function notifyEventOpened(eventType: TeamEvent['type']) {
+    try {
+      const idToken = await auth?.currentUser?.getIdToken();
+      if (!idToken) return;
+      await fetch('/api/notify-event-created', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ teamCode, eventType }),
+      });
+    } catch (err) {
+      console.error('Failed to send event-opened push:', err);
     }
   }
 
