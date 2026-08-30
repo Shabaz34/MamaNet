@@ -6,6 +6,7 @@ import { useTeamCaptain, useTeamRoster } from '@/lib/teamHooks';
 import TeamRoster from './TeamRoster';
 import EventEditor from './EventEditor';
 import NextGameCard from './NextGameCard';
+import TrainingRsvpCard from './TrainingRsvpCard';
 import TrainingPlanView from './TrainingPlanView';
 import KnowledgeBaseView from './KnowledgeBaseView';
 import RulesChatBot from './RulesChatBot';
@@ -90,6 +91,9 @@ export default function CoachDashboard({
         </p>
 
         <TeamRoster players={roster} captainUid={captainUid} />
+
+        {/* Weekly training attendance counter + list; coach can add guests but doesn't RSVP for herself */}
+        <TrainingRsvpCard teamCode={teamCode} uid={coachUid} isCaptain hideSelfRsvp />
 
         <EventEditor teamCode={teamCode} coachUid={coachUid} />
 

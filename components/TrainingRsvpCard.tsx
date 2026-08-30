@@ -33,10 +33,15 @@ export default function TrainingRsvpCard({
   teamCode,
   uid,
   isCaptain,
+  hideSelfRsvp = false,
 }: {
   teamCode: string;
   uid: string;
   isCaptain: boolean;
+  /** Hide the personal "מגיעה/לא מגיעה" buttons — for viewers (e.g. the coach)
+   * who aren't players attending training themselves, but can still see the
+   * counter/list and (if isCaptain) manage guests. */
+  hideSelfRsvp?: boolean;
 }) {
   const settings = useTrainingSettings(teamCode);
   const { next, pollOpen, trainingStarted, msUntilPollOpens } = useTrainingPollState(teamCode);
@@ -193,7 +198,8 @@ export default function TrainingRsvpCard({
         </div>
 
         {/* Poll */}
-        {next &&
+        {!hideSelfRsvp &&
+          next &&
           (pollOpen ? (
             <div className="flex gap-2">
               <button
