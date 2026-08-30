@@ -42,7 +42,7 @@ export default function NextEventCard({
   const event = useTeamEvent(teamCode);
   const myRsvp = useMyRsvp(teamCode, uid);
   const [saving, setSaving] = useState(false);
-  const { next, pollOpen, trainingStarted } = useTrainingPollState(teamCode);
+  const { next, pollOpen, trainingStarted, now } = useTrainingPollState(teamCode);
 
   const roster = useTeamRoster(teamCode);
   const rsvps = useEventRsvps(teamCode);
@@ -52,6 +52,10 @@ export default function NextEventCard({
   const [attendeesOpen, setAttendeesOpen] = useState(false);
 
   const canManageGuests = isCaptain || isCoach;
+  // team_events has no poll delay — RSVP opens the moment the coach sets the
+  // event — so "registration open" here just means the event hasn't started
+  // yet. Guests shouldn't be addable for a session that's already over.
+  const registrationOpen = Boolean(event?.date && event?.time && sessionDateTime(event.date, event.time) > now);
   const attendingPlayers = roster.filter((p) => rsvps[p.uid] === 'coming');
   const total = attendingPlayers.length + guests.length;
   const progressPct = Math.min(100, (total / ATTENDANCE_TARGET) * 100);
@@ -237,22 +241,26 @@ export default function NextEventCard({
             </ul>
           )}
 
-          <form onSubmit={handleAddGuest} className="flex gap-2">
-            <input
-              value={guestName}
-              onChange={(e) => setGuestName(e.target.value)}
-              placeholder="שם המשלימה"
-              className="flex-1 rounded-xl border border-slate-200 px-3.5 py-2.5 min-h-[44px] text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
-            />
-            <button
-              type="submit"
-              disabled={!guestName.trim() || guestSaving}
-              className="flex items-center gap-1.5 rounded-xl bg-violet-600 text-white px-3.5 py-2.5 min-h-[44px] text-sm font-bold hover:bg-violet-700 disabled:opacity-40 transition shrink-0"
-            >
-              {guestSaving ? <Loader2 size={15} className="animate-spin" /> : <UserPlus size={15} />}
-              הוספה
-            </button>
-          </form>
+          {registrationOpen ? (
+            <form onSubmit={handleAddGuest} className="flex gap-2">
+              <input
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                placeholder="שם המשלימה"
+                className="flex-1 rounded-xl border border-slate-200 px-3.5 py-2.5 min-h-[44px] text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
+              />
+              <button
+                type="submit"
+                disabled={!guestName.trim() || guestSaving}
+                className="flex items-center gap-1.5 rounded-xl bg-violet-600 text-white px-3.5 py-2.5 min-h-[44px] text-sm font-bold hover:bg-violet-700 disabled:opacity-40 transition shrink-0"
+              >
+                {guestSaving ? <Loader2 size={15} className="animate-spin" /> : <UserPlus size={15} />}
+                הוספה
+              </button>
+            </form>
+          ) : (
+            <p className="text-xs text-slate-400 leading-relaxed">ניתן להוסיף משלימות רק כל עוד ההרשמה פתוחה.</p>
+          )}
         </div>
       )}
     </div>
