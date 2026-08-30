@@ -5,6 +5,7 @@ import { UserCircle2, Menu, NotebookPen, BookOpen, Sparkles, Trophy } from 'luci
 import { useTeamCaptain, useTeamRoster } from '@/lib/teamHooks';
 import TeamRoster from './TeamRoster';
 import EventEditor from './EventEditor';
+import NextEventCard from './NextEventCard';
 import NextGameCard from './NextGameCard';
 import TrainingRsvpCard from './TrainingRsvpCard';
 import TrainingPlanView from './TrainingPlanView';
@@ -91,6 +92,9 @@ export default function CoachDashboard({
         </p>
 
         <TeamRoster players={roster} captainUid={captainUid} />
+
+        {/* Attendance counter + list for the next event; coach can add guests but doesn't RSVP for herself */}
+        <NextEventCard teamCode={teamCode} uid={coachUid} isCoach hideSelfRsvp />
 
         {/* Weekly training attendance counter + list; coach can add guests but doesn't RSVP for herself */}
         <TrainingRsvpCard teamCode={teamCode} uid={coachUid} isCaptain hideSelfRsvp />

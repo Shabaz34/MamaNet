@@ -292,6 +292,81 @@ export async function setMyRsvp(teamCode: string, uid: string, status: RsvpStatu
   await setDoc(doc(db, 'team_events', teamCode, 'rsvps', uid), { status, updatedAt: serverTimestamp() });
 }
 
+export function useEventRsvps(teamCode: string | undefined) {
+  const [rsvps, setRsvps] = useState<Record<string, RsvpStatus>>({});
+
+  useEffect(() => {
+    if (!db || !teamCode) {
+      setRsvps({});
+      return;
+    }
+
+    const unsubscribe = onSnapshot(
+      collection(db, 'team_events', teamCode, 'rsvps'),
+      (snapshot) => {
+        const next: Record<string, RsvpStatus> = {};
+        snapshot.docs.forEach((d) => {
+          next[d.id] = (d.data().status as RsvpStatus) ?? 'not-coming';
+        });
+        setRsvps(next);
+      },
+      (err) => console.error('useEventRsvps listener failed:', err),
+    );
+
+    return unsubscribe;
+  }, [teamCode]);
+
+  return rsvps;
+}
+
+export interface EventGuest {
+  id: string;
+  name: string;
+  addedBy: string;
+}
+
+export function useEventGuests(teamCode: string | undefined) {
+  const [guests, setGuests] = useState<EventGuest[]>([]);
+
+  useEffect(() => {
+    if (!db || !teamCode) {
+      setGuests([]);
+      return;
+    }
+
+    const unsubscribe = onSnapshot(
+      collection(db, 'team_events', teamCode, 'guests'),
+      (snapshot) => {
+        setGuests(
+          snapshot.docs.map((d) => {
+            const data = d.data() as { name?: string; addedBy?: string };
+            return { id: d.id, name: data.name ?? '', addedBy: data.addedBy ?? '' };
+          }),
+        );
+      },
+      (err) => console.error('useEventGuests listener failed:', err),
+    );
+
+    return unsubscribe;
+  }, [teamCode]);
+
+  return guests;
+}
+
+export async function addEventGuest(teamCode: string, name: string, addedByUid: string) {
+  if (!db) return;
+  await addDoc(collection(db, 'team_events', teamCode, 'guests'), {
+    name,
+    addedBy: addedByUid,
+    addedAt: serverTimestamp(),
+  });
+}
+
+export async function removeEventGuest(teamCode: string, guestId: string) {
+  if (!db) return;
+  await deleteDoc(doc(db, 'team_events', teamCode, 'guests', guestId));
+}
+
 export function useTeamCaptain(teamCode: string | undefined) {
   const [captainUid, setCaptainUid] = useState<string | null>(null);
 

@@ -135,7 +135,7 @@ export default function PlayerDashboard({
         </div>
 
         {/* Hero: upcoming match/training + RSVP */}
-        <NextEventCard teamCode={teamCode} playerUid={playerUid} />
+        <NextEventCard teamCode={teamCode} uid={playerUid} isCaptain={isCaptain} />
 
         {/* Weekly training RSVP + attendance counter */}
         <TrainingRsvpCard teamCode={teamCode} uid={playerUid} isCaptain={isCaptain} />
