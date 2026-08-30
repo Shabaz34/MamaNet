@@ -102,7 +102,7 @@ export default function CoachDashboard({
         {/* Weekly training attendance counter + list; coach can add guests but doesn't RSVP for herself */}
         <TrainingRsvpCard teamCode={teamCode} uid={coachUid} isCaptain hideSelfRsvp />
 
-        <EventEditor teamCode={teamCode} coachUid={coachUid} />
+        <EventEditor teamCode={teamCode} uid={coachUid} />
 
         <NextGameCard teamCode={teamCode} isCoach coachUid={coachUid} />
       </div>

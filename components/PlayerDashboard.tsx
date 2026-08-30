@@ -9,6 +9,7 @@ import TeamChatBot from './TeamChatBot';
 import RulesChatBot from './RulesChatBot';
 import NextEventCard from './NextEventCard';
 import TrainingRsvpCard from './TrainingRsvpCard';
+import EventEditor from './EventEditor';
 import NextGameCard from './NextGameCard';
 import EnterGamesView from './EnterGamesView';
 import MatchHistoryView from './MatchHistoryView';
@@ -142,6 +143,9 @@ export default function PlayerDashboard({
 
         {/* Weekly training RSVP + attendance counter */}
         <TrainingRsvpCard teamCode={teamCode} uid={playerUid} isCaptain={isCaptain} />
+
+        {/* Recurring training schedule — captain-owned, practice only (games stay coach-only) */}
+        {isCaptain && <EventEditor teamCode={teamCode} uid={playerUid} allowGames={false} />}
 
         {/* Next opponent, entered by the team captain */}
         <NextGameCard teamCode={teamCode} />

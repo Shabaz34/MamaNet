@@ -10,6 +10,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
   where,
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -459,6 +460,16 @@ export async function addTeamGame(teamCode: string, game: { opponentName: string
 export async function deleteTeamGame(gameId: string) {
   if (!db) return;
   await deleteDoc(doc(db, 'team_games', gameId));
+}
+
+// Edits an already-scheduled game's opponent/date/time (captain or coach —
+// same as the team_games update rule). Doesn't touch status/sets/result.
+export async function updateTeamGame(
+  gameId: string,
+  updates: { opponentName: string; date: string; time: string },
+) {
+  if (!db) return;
+  await updateDoc(doc(db, 'team_games', gameId), { ...updates, updatedAt: serverTimestamp() });
 }
 
 // Computes each set's winner from the raw scores, tallies the match to a

@@ -2,12 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { Bell, Loader2, X } from 'lucide-react';
-import { enablePushNotifications } from '@/lib/push';
+import { enablePushNotifications, listenForForegroundPush } from '@/lib/push';
 
 // Small dismissible banner offering to turn on push notifications
 // (registration-opened / one-hour-before reminders). Hides itself once
 // permission has already been granted or denied, or after the user
 // dismisses it for this session.
+//
+// Also — regardless of whether the banner itself is showing — sets up the
+// foreground push listener once permission is already granted: the service
+// worker's onBackgroundMessage only fires while the tab isn't focused, so an
+// open, focused tab needs this to actually show anything when a push lands.
 export default function PushPermissionPrompt({ uid }: { uid: string }) {
   const [status, setStatus] = useState<NotificationPermission | 'unsupported' | null>(null);
   const [dismissed, setDismissed] = useState(false);
@@ -20,6 +25,17 @@ export default function PushPermissionPrompt({ uid }: { uid: string }) {
     }
     setStatus(Notification.permission);
   }, []);
+
+  useEffect(() => {
+    if (status !== 'granted') return;
+    let unsubscribe: (() => void) | undefined;
+    listenForForegroundPush((title, body) => {
+      new Notification(title, { body, icon: '/icon-192.png' });
+    }).then((unsub) => {
+      unsubscribe = unsub;
+    });
+    return () => unsubscribe?.();
+  }, [status]);
 
   if (!status || status === 'granted' || status === 'unsupported' || dismissed) return null;
 
