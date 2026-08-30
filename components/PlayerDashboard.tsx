@@ -148,7 +148,7 @@ export default function PlayerDashboard({
         {isCaptain && <EventEditor teamCode={teamCode} uid={playerUid} allowGames={false} />}
 
         {/* Next opponent, entered by the team captain */}
-        <NextGameCard teamCode={teamCode} />
+        <NextGameCard teamCode={teamCode} canEdit={isCaptain} />
 
         <TeamRoster players={roster} captainUid={captainUid} />
       </div>

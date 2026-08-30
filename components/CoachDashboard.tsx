@@ -104,7 +104,7 @@ export default function CoachDashboard({
 
         <EventEditor teamCode={teamCode} uid={coachUid} />
 
-        <NextGameCard teamCode={teamCode} isCoach coachUid={coachUid} />
+        <NextGameCard teamCode={teamCode} isCoach coachUid={coachUid} canEdit />
       </div>
 
       <DrawerMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} onLogout={onLogout}>
