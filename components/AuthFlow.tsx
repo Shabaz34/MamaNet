@@ -7,6 +7,9 @@ import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   signOut,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, getDocs, collection, query, where, serverTimestamp } from 'firebase/firestore';
 import { auth, db, isFirebaseConfigured } from '@/lib/firebase';
@@ -69,6 +72,7 @@ export default function AuthFlow() {
   const [role, setRole] = useState<Role | null>(null);
   const [intent, setIntent] = useState<Intent | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
+  const [rememberMe, setRememberMe] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [coach, setCoach] = useState<CoachData | null>(null);
@@ -155,6 +159,11 @@ export default function AuthFlow() {
     }
 
     try {
+      // "הישארי מחוברת": local persistence survives closing the browser/tab;
+      // session persistence clears when the browser session ends, requiring
+      // login again next visit.
+      await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
+
       if (intent === 'login') {
         const credential = await signInWithEmailAndPassword(auth, form.email, form.password);
         const snap = await getDoc(doc(db, 'users', credential.user.uid));
@@ -282,9 +291,11 @@ export default function AuthFlow() {
               role={role}
               intent={intent}
               form={form}
+              rememberMe={rememberMe}
               submitting={submitting}
               error={authError}
               onChange={updateField}
+              onRememberMeChange={setRememberMe}
               onBack={() => setScreen(2)}
               onSubmit={handleSubmit}
             />
@@ -415,18 +426,22 @@ function FormScreen({
   role,
   intent,
   form,
+  rememberMe,
   submitting,
   error,
   onChange,
+  onRememberMeChange,
   onBack,
   onSubmit,
 }: {
   role: Role;
   intent: Intent;
   form: FormData;
+  rememberMe: boolean;
   submitting: boolean;
   error: string | null;
   onChange: (field: keyof FormData, value: string) => void;
+  onRememberMeChange: (value: boolean) => void;
   onBack: () => void;
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
 }) {
@@ -475,6 +490,16 @@ function FormScreen({
             onChange={(v) => onChange('teamCode', v)}
           />
         )}
+
+        <label className="flex items-center justify-end gap-2.5 cursor-pointer select-none">
+          <span className="text-sm font-semibold text-slate-600">הישארי מחוברת במכשיר הזה</span>
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => onRememberMeChange(e.target.checked)}
+            className="w-4.5 h-4.5 rounded border-slate-300 text-[#003366] focus:ring-2 focus:ring-[#003366]/30"
+          />
+        </label>
 
         {error && (
           <p className="text-sm font-semibold text-rose-600 bg-rose-50 rounded-xl px-4 py-2.5 text-center">{error}</p>
