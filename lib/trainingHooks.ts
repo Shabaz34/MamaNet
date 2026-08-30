@@ -5,9 +5,11 @@ import { addDoc, collection, deleteDoc, doc, onSnapshot, serverTimestamp, setDoc
 import { db } from './firebase';
 import {
   ATTENDANCE_TARGET,
+  NEAR_TERM_WINDOW_MS,
   POLL_WINDOW_MS,
   WEEKDAY_NAMES,
   formatDateKey,
+  isWithinNearTerm,
   resolveNextTraining,
   sessionDateTime,
   toDateKey,
@@ -18,7 +20,7 @@ import {
 
 // Re-exported for existing importers (components already do
 // `import { ATTENDANCE_TARGET, formatDateKey, sessionDateTime, ... } from '@/lib/trainingHooks'`).
-export { ATTENDANCE_TARGET, POLL_WINDOW_MS, WEEKDAY_NAMES, formatDateKey, sessionDateTime };
+export { ATTENDANCE_TARGET, NEAR_TERM_WINDOW_MS, POLL_WINDOW_MS, WEEKDAY_NAMES, formatDateKey, isWithinNearTerm, sessionDateTime };
 export type { ResolvedTraining, TrainingSettings };
 
 export type TrainingRsvpStatus = 'coming' | 'not-coming';

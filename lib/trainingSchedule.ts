@@ -10,6 +10,18 @@ export const ATTENDANCE_TARGET = 12;
 
 export const POLL_WINDOW_MS = 24 * 60 * 60 * 1000;
 
+// How far ahead the dashboard shows an upcoming session/game before it's
+// considered too far out to display — shared by every "what's next" card
+// (recurring training, ad-hoc events, games) so they all use the same
+// one-week horizon. Not training-specific, but this module is already the
+// shared home for "pure date math with no Firebase/React".
+export const NEAR_TERM_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+export function isWithinNearTerm(target: Date, now: Date): boolean {
+  const diffMs = target.getTime() - now.getTime();
+  return diffMs >= 0 && diffMs <= NEAR_TERM_WINDOW_MS;
+}
+
 export interface TrainingSettings {
   weekday: number; // 0 = Sunday .. 6 = Saturday, matches Date#getDay()
   time: string; // "HH:mm"

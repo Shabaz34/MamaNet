@@ -8,6 +8,7 @@ import {
   WEEKDAY_NAMES,
   addTrainingGuest,
   formatDateKey,
+  isWithinNearTerm,
   removeTrainingGuest,
   sessionDateTime,
   setMyTrainingRsvp,
@@ -40,7 +41,13 @@ export default function TrainingRsvpCard({
   hideSelfRsvp?: boolean;
 }) {
   const settings = useTrainingSettings(teamCode);
-  const { next, pollOpen, trainingStarted, msUntilPollOpens } = useTrainingPollState(teamCode);
+  const { next: rawNext, pollOpen, trainingStarted, msUntilPollOpens, now } = useTrainingPollState(teamCode);
+  // Only show a session coming up within the next week — same one-week
+  // horizon as the other "what's next" cards on the dashboard. In practice
+  // this only ever excludes something when a manual override pushed the
+  // next occurrence unusually far out; the plain weekly default is always
+  // within a week of "now" by construction.
+  const next = rawNext && isWithinNearTerm(sessionDateTime(rawNext.dateKey, rawNext.time), now) ? rawNext : null;
   const rsvps = useTrainingRsvps(teamCode, next?.dateKey);
   const guests = useTrainingGuests(teamCode, next?.dateKey);
   const roster = useTeamRoster(teamCode);
@@ -171,7 +178,9 @@ export default function TrainingRsvpCard({
                 )}
               </p>
             ) : (
-              <p className="text-sm text-slate-500">טרם נקבע מועד קבוע</p>
+              <p className="text-sm text-slate-500">
+                {settings ? 'האימון הבא לא בטווח השבוע הקרוב' : 'טרם נקבע מועד קבוע'}
+              </p>
             )}
             {settings && (
               <p className="text-xs text-slate-400 mt-0.5">

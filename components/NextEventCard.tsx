@@ -12,7 +12,14 @@ import {
   useTeamRoster,
   setMyRsvp,
 } from '@/lib/teamHooks';
-import { ATTENDANCE_TARGET, WEEKDAY_NAMES, formatDateKey, sessionDateTime, useTrainingPollState } from '@/lib/trainingHooks';
+import {
+  ATTENDANCE_TARGET,
+  WEEKDAY_NAMES,
+  formatDateKey,
+  isWithinNearTerm,
+  sessionDateTime,
+  useTrainingPollState,
+} from '@/lib/trainingHooks';
 
 function formatEventDate(dateStr: string): string {
   if (!dateStr) return '';
@@ -56,6 +63,9 @@ export default function NextEventCard({
   // event — so "registration open" here just means the event hasn't started
   // yet. Guests shouldn't be addable for a session that's already over.
   const registrationOpen = Boolean(event?.date && event?.time && sessionDateTime(event.date, event.time) > now);
+  // The dashboard only shows what's coming up within the next week — a game
+  // scheduled a month out shouldn't clutter the home screen yet.
+  const eventInRange = Boolean(event?.date && event?.time && isWithinNearTerm(sessionDateTime(event.date, event.time), now));
   const attendingPlayers = roster.filter((p) => rsvps[p.uid] === 'coming');
   const total = attendingPlayers.length + guests.length;
   const progressPct = Math.min(100, (total / ATTENDANCE_TARGET) * 100);
@@ -95,12 +105,13 @@ export default function NextEventCard({
     }
   }
 
-  if (!event) {
+  if (!event || !eventInRange) {
     // Once the weekly training poll takes over (24h before the session), it
     // already shows this same date — avoid showing it twice.
     if (pollOpen || trainingStarted) return null;
 
-    if (next) {
+    const nextInRange = next && isWithinNearTerm(sessionDateTime(next.dateKey, next.time), now);
+    if (nextInRange) {
       return (
         <div className="rounded-3xl bg-white border border-violet-100 shadow-sm p-5 flex items-center gap-3">
           <span className="w-10 h-10 rounded-2xl bg-violet-50 flex items-center justify-center shrink-0">
@@ -122,7 +133,9 @@ export default function NextEventCard({
         <span className="w-10 h-10 rounded-2xl bg-violet-50 flex items-center justify-center shrink-0">
           <CalendarClock size={18} className="text-violet-600" />
         </span>
-        <p className="text-sm text-slate-500 leading-relaxed">המאמנת עוד לא קבעה את האימון או המשחק הבא.</p>
+        <p className="text-sm text-slate-500 leading-relaxed">
+          {event ? 'האימון או המשחק הבא לא בטווח השבוע הקרוב.' : 'המאמנת עוד לא קבעה את האימון או המשחק הבא.'}
+        </p>
       </div>
     );
   }

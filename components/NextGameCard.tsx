@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { LayoutGrid, Loader2, Pencil, Trophy, X } from 'lucide-react';
 import { useTeamGames, updateTeamGame } from '@/lib/teamHooks';
+import { isWithinNearTerm } from '@/lib/trainingHooks';
 import LineupEditorModal from './LineupEditorModal';
 
 function formatGameDate(dateStr: string): string {
@@ -34,9 +35,11 @@ export default function NextGameCard({
   const [editForm, setEditForm] = useState({ opponentName: '', date: '', time: '' });
   const [saving, setSaving] = useState(false);
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  // Only show a game coming up within the next week — a match scheduled a
+  // month out shouldn't clutter the home screen yet.
+  const now = new Date();
   const nextGame = [...games]
-    .filter((g) => g.date >= todayStr)
+    .filter((g) => g.date && g.time && isWithinNearTerm(new Date(`${g.date}T${g.time}:00`), now))
     .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))[0];
 
   if (!nextGame) return null;
