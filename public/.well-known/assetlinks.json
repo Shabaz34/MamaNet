@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.vercel.mama_net.twa",
+      "sha256_cert_fingerprints": [
+        "DC:31:4F:2A:79:9C:A2:E2:81:BA:56:67:8C:8B:E6:5F:C8:0E:D9:AA:05:F3:71:61:9B:42:FB:48:5E:0A:9F:90"
+      ]
+    }
+  }
+]
