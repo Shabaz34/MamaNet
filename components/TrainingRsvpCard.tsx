@@ -312,8 +312,9 @@ export default function TrainingRsvpCard({
           </div>
         )}
 
-        {/* Publish this open poll to the cross-team substitutes forum */}
-        {isCaptain && next && pollOpen && (
+        {/* Publish this open poll to the cross-team substitutes forum — no
+            longer relevant once full (the forum already hides it either way) */}
+        {isCaptain && next && pollOpen && !targetReached && (
           <div className="border-t border-violet-50 pt-4 flex flex-col gap-2.5">
             {teamInfo ? (
               <button

@@ -1,9 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Loader2, LogOut, Megaphone } from 'lucide-react';
-import { useTeamInfo } from '@/lib/teamHooks';
-import { WEEKDAY_NAMES, formatDateKey, removeTrainingGuest, sessionDateTime } from '@/lib/trainingHooks';
+import { Loader2, LogOut, Megaphone, Users } from 'lucide-react';
+import { useTeamInfo, useTeamRoster } from '@/lib/teamHooks';
+import {
+  ATTENDANCE_TARGET,
+  WEEKDAY_NAMES,
+  formatDateKey,
+  removeTrainingGuest,
+  sessionDateTime,
+  useTrainingGuests,
+  useTrainingRsvps,
+} from '@/lib/trainingHooks';
 import { useMyForumJoins, type MyForumJoin } from '@/lib/forumHooks';
 
 // Trainings this player joined as a substitute via the forum, for teams
@@ -36,7 +44,13 @@ export default function MyForumJoinsCard({ playerUid, teamCode }: { playerUid: s
 
 function MyJoinRow({ join }: { join: MyForumJoin }) {
   const team = useTeamInfo(join.teamCode);
+  const roster = useTeamRoster(join.teamCode);
+  const rsvps = useTrainingRsvps(join.teamCode, join.dateKey);
+  const guests = useTrainingGuests(join.teamCode, join.dateKey);
   const [saving, setSaving] = useState(false);
+
+  const attendingCount = roster.filter((p) => rsvps[p.uid] === 'coming').length;
+  const total = attendingCount + guests.length;
 
   async function handleCancel() {
     setSaving(true);
@@ -58,16 +72,26 @@ function MyJoinRow({ join }: { join: MyForumJoin }) {
           {join.time}
         </p>
       </div>
-      <button
-        type="button"
-        disabled={saving}
-        onClick={handleCancel}
-        aria-label="ביטול הרשמה"
-        className="flex items-center gap-1 rounded-lg text-xs font-bold text-slate-400 hover:bg-rose-50 hover:text-rose-600 px-2.5 py-2 min-h-[36px] disabled:opacity-60 transition shrink-0"
-      >
-        {saving ? <Loader2 size={13} className="animate-spin" /> : <LogOut size={13} />}
-        ביטול
-      </button>
+      <div className="flex items-center gap-2.5 shrink-0">
+        <span
+          className={`flex items-center gap-1 text-xs font-extrabold tabular-nums ${
+            total >= ATTENDANCE_TARGET ? 'text-emerald-600' : 'text-violet-600'
+          }`}
+        >
+          <Users size={12} />
+          {total}/{ATTENDANCE_TARGET}
+        </span>
+        <button
+          type="button"
+          disabled={saving}
+          onClick={handleCancel}
+          aria-label="ביטול הרשמה"
+          className="flex items-center gap-1 rounded-lg text-xs font-bold text-slate-400 hover:bg-rose-50 hover:text-rose-600 px-2.5 py-2 min-h-[36px] disabled:opacity-60 transition shrink-0"
+        >
+          {saving ? <Loader2 size={13} className="animate-spin" /> : <LogOut size={13} />}
+          ביטול
+        </button>
+      </div>
     </li>
   );
 }
