@@ -158,7 +158,7 @@ export default function NextEventCard({
         </div>
       </div>
 
-      {/* Attendance counter — red until reaching the target, green once reached */}
+      {/* Attendance counter — brand gradient until reaching the target, green once reached */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <p className="text-xs font-bold text-slate-500">נרשמו להגיע</p>
@@ -168,7 +168,7 @@ export default function NextEventCard({
             aria-expanded={attendeesOpen}
             disabled={total === 0}
             className={`flex items-center gap-1 text-lg font-extrabold tabular-nums transition disabled:cursor-default ${
-              targetReached ? 'text-emerald-600' : 'text-rose-500'
+              targetReached ? 'text-emerald-600' : 'text-violet-600'
             } ${total > 0 ? 'hover:opacity-70' : ''}`}
           >
             {total}/{ATTENDANCE_TARGET}
@@ -177,7 +177,7 @@ export default function NextEventCard({
         </div>
         <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${targetReached ? 'bg-emerald-500' : 'bg-rose-500'}`}
+            className={`h-full rounded-full transition-all duration-500 ${targetReached ? 'bg-emerald-500' : 'bg-gradient-to-l from-violet-600 to-coral-500'}`}
             style={{ width: `${progressPct}%` }}
           />
         </div>

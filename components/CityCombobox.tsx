@@ -50,7 +50,7 @@ export default function CityCombobox({
             // Delay so a click on a suggestion registers before the list unmounts.
             blurTimeout.current = setTimeout(() => setOpen(false), 150);
           }}
-          className="w-full rounded-xl border border-slate-200 pr-10 pl-4 py-3 text-[15px] text-slate-800 placeholder:text-slate-400 transition focus:outline-none focus:border-[#003366]/50 focus:ring-2 focus:ring-[#003366]/20"
+          className="w-full rounded-xl border border-slate-200 pr-10 pl-4 py-3 text-[15px] text-slate-800 placeholder:text-slate-400 transition focus:outline-none focus:border-violet-600/50 focus:ring-2 focus:ring-violet-600/20"
         />
       </div>
 

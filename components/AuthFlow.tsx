@@ -318,7 +318,7 @@ export default function AuthFlow() {
   if (checkingSession) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 size={24} className="animate-spin text-[#003366]" />
+        <Loader2 size={24} className="animate-spin text-violet-600" />
       </div>
     );
   }
@@ -337,7 +337,7 @@ export default function AuthFlow() {
               <span
                 key={step}
                 className={`h-1.5 rounded-full transition-all ${
-                  step === screen ? 'w-6 bg-[#003366]' : 'w-1.5 bg-slate-200'
+                  step === screen ? 'w-6 bg-violet-600' : 'w-1.5 bg-slate-200'
                 }`}
               />
             ))}
@@ -434,10 +434,10 @@ function RoleButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-3 rounded-2xl border border-slate-200 px-5 py-4 text-right transition hover:border-[#003366]/40 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003366]/40"
+      className="flex items-center gap-3 rounded-2xl border border-slate-200 px-5 py-4 text-right transition hover:border-violet-600/40 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-600/40"
     >
       <span className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-        <Icon size={18} className="text-[#003366]" />
+        <Icon size={18} className="text-violet-600" />
       </span>
       <span className="text-[15px] font-bold text-slate-800">{label}</span>
     </button>
@@ -468,14 +468,14 @@ function IntentScreen({
         <button
           type="button"
           onClick={() => onChoose('login')}
-          className="rounded-2xl bg-[#003366] text-white px-5 py-4 text-[15px] font-bold transition hover:bg-[#002850] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003366]/40"
+          className="rounded-2xl bg-violet-600 text-white px-5 py-4 text-[15px] font-bold transition hover:bg-violet-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-600/40"
         >
           התחברות
         </button>
         <button
           type="button"
           onClick={() => onChoose('register')}
-          className="rounded-2xl border border-slate-200 px-5 py-4 text-[15px] font-bold text-slate-800 transition hover:border-[#003366]/40 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003366]/40"
+          className="rounded-2xl border border-slate-200 px-5 py-4 text-[15px] font-bold text-slate-800 transition hover:border-violet-600/40 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-600/40"
         >
           הרשמה לליגה
         </button>
@@ -563,7 +563,7 @@ function FormScreen({
             type="checkbox"
             checked={rememberMe}
             onChange={(e) => onRememberMeChange(e.target.checked)}
-            className="w-4.5 h-4.5 rounded border-slate-300 text-[#003366] focus:ring-2 focus:ring-[#003366]/30"
+            className="w-4.5 h-4.5 rounded border-slate-300 text-violet-600 focus:ring-2 focus:ring-violet-600/30"
           />
         </label>
 
@@ -574,7 +574,7 @@ function FormScreen({
         <button
           type="submit"
           disabled={submitting}
-          className="mt-2 flex items-center justify-center gap-2 rounded-2xl bg-[#003366] text-white px-5 py-4 text-[15px] font-bold transition hover:bg-[#002850] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003366]/40"
+          className="mt-2 flex items-center justify-center gap-2 rounded-2xl bg-violet-600 text-white px-5 py-4 text-[15px] font-bold transition hover:bg-violet-700 disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-600/40"
         >
           {submitting && <Loader2 size={16} className="animate-spin" />}
           המשך
@@ -608,7 +608,7 @@ function Field({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-xl border border-slate-200 px-4 py-3 text-[15px] text-slate-800 placeholder:text-slate-400 transition focus:outline-none focus:border-[#003366]/50 focus:ring-2 focus:ring-[#003366]/20"
+        className="rounded-xl border border-slate-200 px-4 py-3 text-[15px] text-slate-800 placeholder:text-slate-400 transition focus:outline-none focus:border-violet-600/50 focus:ring-2 focus:ring-violet-600/20"
       />
     </label>
   );
@@ -661,7 +661,7 @@ function CoachTeamSetupScreen({
             value={teamName}
             placeholder="לדוגמה: מאמאנט חולון"
             onChange={(e) => setTeamName(e.target.value)}
-            className="rounded-xl border border-slate-200 px-4 py-3 text-[15px] text-slate-800 placeholder:text-slate-400 transition focus:outline-none focus:border-[#003366]/50 focus:ring-2 focus:ring-[#003366]/20"
+            className="rounded-xl border border-slate-200 px-4 py-3 text-[15px] text-slate-800 placeholder:text-slate-400 transition focus:outline-none focus:border-violet-600/50 focus:ring-2 focus:ring-violet-600/20"
           />
         </label>
 
@@ -677,7 +677,7 @@ function CoachTeamSetupScreen({
         <button
           type="submit"
           disabled={submitting || !teamName.trim() || !city.trim()}
-          className="mt-2 flex items-center justify-center gap-2 rounded-2xl bg-[#003366] text-white px-5 py-4 text-[15px] font-bold transition hover:bg-[#002850] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003366]/40"
+          className="mt-2 flex items-center justify-center gap-2 rounded-2xl bg-violet-600 text-white px-5 py-4 text-[15px] font-bold transition hover:bg-violet-700 disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-600/40"
         >
           {submitting && <Loader2 size={16} className="animate-spin" />}
           יצירת קבוצה

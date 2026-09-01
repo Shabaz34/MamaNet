@@ -123,7 +123,7 @@ export default function CoachProfile({
           <input
             value={nameDraft}
             onChange={(e) => setNameDraft(e.target.value)}
-            className="rounded-xl border border-slate-200 px-4 py-3 text-[15px] text-slate-800 transition focus:outline-none focus:border-[#003366]/50 focus:ring-2 focus:ring-[#003366]/20"
+            className="rounded-xl border border-slate-200 px-4 py-3 text-[15px] text-slate-800 transition focus:outline-none focus:border-violet-600/50 focus:ring-2 focus:ring-violet-600/20"
           />
         </label>
         <label className="flex flex-col gap-1.5 text-right">
@@ -132,14 +132,14 @@ export default function CoachProfile({
             type="email"
             value={emailDraft}
             onChange={(e) => setEmailDraft(e.target.value)}
-            className="rounded-xl border border-slate-200 px-4 py-3 text-[15px] text-slate-800 transition focus:outline-none focus:border-[#003366]/50 focus:ring-2 focus:ring-[#003366]/20"
+            className="rounded-xl border border-slate-200 px-4 py-3 text-[15px] text-slate-800 transition focus:outline-none focus:border-violet-600/50 focus:ring-2 focus:ring-violet-600/20"
           />
         </label>
 
         <button
           type="button"
           onClick={handleSave}
-          className="rounded-2xl bg-[#003366] text-white px-5 py-3.5 text-[15px] font-bold transition hover:bg-[#002850]"
+          className="rounded-2xl bg-violet-600 text-white px-5 py-3.5 text-[15px] font-bold transition hover:bg-violet-700"
         >
           שמירת שינויים
         </button>

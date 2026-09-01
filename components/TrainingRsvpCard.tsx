@@ -172,7 +172,7 @@ export default function TrainingRsvpCard({
             </div>
             <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${targetReached ? 'bg-emerald-500' : 'bg-violet-500'}`}
+                className={`h-full rounded-full transition-all duration-500 ${targetReached ? 'bg-emerald-500' : 'bg-gradient-to-l from-violet-600 to-coral-500'}`}
                 style={{ width: `${progressPct}%` }}
               />
             </div>

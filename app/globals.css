@@ -13,8 +13,18 @@ html {
 }
 
 body {
-  background: #F8FAFC;
+  background: #FBF1EC;
   overscroll-behavior: none;
+}
+
+/* Extrabold text (headlines, meter numbers, "AA" moments) picks up the
+   Rubik display face; font-bold and everyday body text stay on Heebo —
+   font-bold covers too much small secondary UI text for Rubik's more
+   geometric letterforms to stay comfortable at that size. Placed after
+   @tailwind utilities so it wins without touching every heading's
+   className individually. */
+.font-extrabold {
+  font-family: var(--font-rubik), var(--font-heebo), system-ui, sans-serif;
 }
 
 /* Hide scrollbars (utility class) */
@@ -54,6 +64,6 @@ body {
   content: '▋';
   display: inline-block;
   margin-right: 2px;
-  color: #00B4D8;
+  color: #E85A3E;
   animation: cursor-blink 0.7s ease-in-out infinite;
 }
