@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { User, Users, ChevronRight, Loader2 } from 'lucide-react';
 import {
   signInWithEmailAndPassword,
@@ -93,6 +93,16 @@ export default function AuthFlow() {
   const [player, setPlayer] = useState<PlayerData | null>(null);
   const [pendingCoach, setPendingCoach] = useState<PendingCoach | null>(null);
 
+  // True for the whole duration of handleSubmit (login or register). Firebase
+  // fires onAuthStateChanged the instant createUserWithEmailAndPassword
+  // resolves — before handleSubmit has finished writing the users/{uid}
+  // profile — so without this guard the listener below would race it,
+  // briefly conclude "no profile yet" for a *player* mid-registration too,
+  // and flash the coach-only team-setup screen at her. This listener is
+  // only meant to restore an already-settled session (page load/refresh);
+  // while a manual flow owns the screen transitions, it should stay out.
+  const manualFlowInProgress = useRef(false);
+
   // Restore an existing session on refresh, bypassing the login screen.
   useEffect(() => {
     if (!isFirebaseConfigured || !auth || !db) {
@@ -103,6 +113,11 @@ export default function AuthFlow() {
     const firestore = db;
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (manualFlowInProgress.current) {
+        setCheckingSession(false);
+        return;
+      }
+
       if (!user) {
         setCheckingSession(false);
         return;
@@ -184,6 +199,7 @@ export default function AuthFlow() {
       return;
     }
 
+    manualFlowInProgress.current = true;
     try {
       // "הישארי מחוברת": local persistence survives closing the browser/tab;
       // session persistence clears when the browser session ends, requiring
@@ -258,6 +274,7 @@ export default function AuthFlow() {
       setAuthError(code ? `${message} [${code}]` : message);
     } finally {
       setSubmitting(false);
+      manualFlowInProgress.current = false;
     }
   }
 
