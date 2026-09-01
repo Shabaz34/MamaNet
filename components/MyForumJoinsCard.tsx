@@ -20,9 +20,23 @@ import { useMyForumJoins, type MyForumJoin } from '@/lib/forumHooks';
 export default function MyForumJoinsCard({ playerUid, teamCode }: { playerUid: string; teamCode: string }) {
   const joins = useMyForumJoins(playerUid, teamCode);
   const now = new Date();
-  const upcoming = joins.filter((j) => j.dateKey && j.time && sessionDateTime(j.dateKey, j.time) > now);
+  // Firestore's own collectionGroup listener can lag a beat on this
+  // client's *own* delete — cancelling and immediately re-reading the same
+  // query sometimes only reflects the change after the listener
+  // re-subscribes (e.g. switching views and back), not on this render.
+  // Track cancelled ids locally so the row disappears the instant the
+  // delete call resolves, without waiting on (or requiring a remount to
+  // pick up) that round trip.
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const upcoming = joins.filter(
+    (j) => j.dateKey && j.time && sessionDateTime(j.dateKey, j.time) > now && !dismissedIds.has(j.id),
+  );
 
   if (upcoming.length === 0) return null;
+
+  function handleDismiss(id: string) {
+    setDismissedIds((prev) => new Set(prev).add(id));
+  }
 
   return (
     <div className="rounded-3xl bg-white border border-violet-100 shadow-sm p-5 flex flex-col gap-3">
@@ -35,14 +49,14 @@ export default function MyForumJoinsCard({ playerUid, teamCode }: { playerUid: s
 
       <ul className="flex flex-col gap-2">
         {upcoming.map((join) => (
-          <MyJoinRow key={join.id} join={join} />
+          <MyJoinRow key={join.id} join={join} onCancelled={() => handleDismiss(join.id)} />
         ))}
       </ul>
     </div>
   );
 }
 
-function MyJoinRow({ join }: { join: MyForumJoin }) {
+function MyJoinRow({ join, onCancelled }: { join: MyForumJoin; onCancelled: () => void }) {
   const team = useTeamInfo(join.teamCode);
   const roster = useTeamRoster(join.teamCode);
   const rsvps = useTrainingRsvps(join.teamCode, join.dateKey);
@@ -56,9 +70,9 @@ function MyJoinRow({ join }: { join: MyForumJoin }) {
     setSaving(true);
     try {
       await removeTrainingGuest(join.teamCode, join.dateKey, join.id);
+      onCancelled();
     } catch (err) {
       console.error('Failed to cancel forum join:', err);
-    } finally {
       setSaving(false);
     }
   }
