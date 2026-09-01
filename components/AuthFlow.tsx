@@ -317,14 +317,14 @@ export default function AuthFlow() {
 
   if (checkingSession) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 size={24} className="animate-spin text-violet-600" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-sm p-8 sm:p-10">
         <div className="flex items-center justify-center mb-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
