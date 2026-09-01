@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Camera, Loader2, Menu, Sparkles, BookOpen, Trophy, History } from 'lucide-react';
+import { Camera, Loader2, Menu, Sparkles, BookOpen, Trophy, History, Users2 } from 'lucide-react';
 import { useTeamCaptain, useTeamRoster } from '@/lib/teamHooks';
 import { uploadAvatar } from '@/lib/uploadAvatar';
 import TeamRoster from './TeamRoster';
@@ -13,10 +13,11 @@ import EventEditor from './EventEditor';
 import NextGameCard from './NextGameCard';
 import EnterGamesView from './EnterGamesView';
 import MatchHistoryView from './MatchHistoryView';
+import SubstitutesForumView from './SubstitutesForumView';
 import DrawerMenu, { DrawerItem } from './DrawerMenu';
 import PushPermissionPrompt from './PushPermissionPrompt';
 
-type View = 'dashboard' | 'chat' | 'rules' | 'games' | 'results';
+type View = 'dashboard' | 'chat' | 'rules' | 'games' | 'results' | 'forum';
 
 export default function PlayerDashboard({
   playerName,
@@ -70,6 +71,16 @@ export default function PlayerDashboard({
   }
   if (view === 'games' && isCaptain) {
     return <EnterGamesView teamCode={teamCode} captainUid={playerUid} onBack={() => setView('dashboard')} />;
+  }
+  if (view === 'forum') {
+    return (
+      <SubstitutesForumView
+        teamCode={teamCode}
+        playerUid={playerUid}
+        playerName={playerName}
+        onBack={() => setView('dashboard')}
+      />
+    );
   }
   if (view === 'results') {
     return (
@@ -155,6 +166,7 @@ export default function PlayerDashboard({
 
       <DrawerMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} onLogout={onLogout}>
         <DrawerItem icon={Sparkles} label="עוזר דיגיטלי AI" onClick={() => openView('chat')} />
+        <DrawerItem icon={Users2} label="פורום משלימות" onClick={() => openView('forum')} />
         <DrawerItem icon={BookOpen} label="חוקת המשחק והתקנון" onClick={() => openView('rules')} />
         <DrawerItem icon={History} label="תוצאות משחקים" onClick={() => openView('results')} />
         {isCaptain && <DrawerItem icon={Trophy} label="הזן משחקים" onClick={() => openView('games')} />}

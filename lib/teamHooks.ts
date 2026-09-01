@@ -15,6 +15,61 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 
+export interface TeamInfo {
+  name: string;
+  city: string;
+  coachUid: string;
+}
+
+// The team's own profile — name + home city, set once by the coach when she
+// finishes registering (or backfilled later for teams created before this
+// existed). Powers the "team X · city Y" line on forum posts and the
+// city-based filtering of the substitutes forum.
+export function useTeamInfo(teamCode: string | undefined) {
+  const [team, setTeam] = useState<TeamInfo | null>(null);
+
+  useEffect(() => {
+    if (!db || !teamCode) {
+      setTeam(null);
+      return;
+    }
+
+    const unsubscribe = onSnapshot(
+      doc(db, 'teams', teamCode),
+      (snap) => {
+        if (!snap.exists()) {
+          setTeam(null);
+          return;
+        }
+        const data = snap.data() as { name?: string; city?: string; coachUid?: string };
+        setTeam({ name: data.name ?? '', city: data.city ?? '', coachUid: data.coachUid ?? '' });
+      },
+      (err) => console.error('useTeamInfo listener failed:', err),
+    );
+
+    return unsubscribe;
+  }, [teamCode]);
+
+  return team;
+}
+
+export async function createTeam(teamCode: string, name: string, city: string, coachUid: string) {
+  if (!db) return;
+  await setDoc(doc(db, 'teams', teamCode), {
+    name,
+    city,
+    coachUid,
+    createdAt: serverTimestamp(),
+  });
+}
+
+export async function teamExists(teamCode: string): Promise<boolean> {
+  if (!db) return false;
+  const { getDoc } = await import('firebase/firestore');
+  const snap = await getDoc(doc(db, 'teams', teamCode));
+  return snap.exists();
+}
+
 export interface RosterPlayer {
   uid: string;
   fullName: string;

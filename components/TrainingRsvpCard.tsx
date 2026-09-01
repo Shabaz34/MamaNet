@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { CalendarClock, Check, ChevronDown, ChevronUp, Loader2, UserPlus, X } from 'lucide-react';
-import { useTeamRoster } from '@/lib/teamHooks';
+import { CalendarClock, Check, ChevronDown, ChevronUp, Loader2, Megaphone, UserPlus, X } from 'lucide-react';
+import { createTeam, useTeamInfo, useTeamRoster } from '@/lib/teamHooks';
 import {
   ATTENDANCE_TARGET,
   WEEKDAY_NAMES,
@@ -17,6 +17,8 @@ import {
   useTrainingRsvps,
   useTrainingSettings,
 } from '@/lib/trainingHooks';
+import { publishToForum, unpublishFromForum, useIsPublished } from '@/lib/forumHooks';
+import CityCombobox from './CityCombobox';
 
 function formatCountdown(ms: number): string {
   const totalMinutes = Math.max(0, Math.floor(ms / 60_000));
@@ -51,11 +53,17 @@ export default function TrainingRsvpCard({
   const rsvps = useTrainingRsvps(teamCode, next?.dateKey);
   const guests = useTrainingGuests(teamCode, next?.dateKey);
   const roster = useTeamRoster(teamCode);
+  const teamInfo = useTeamInfo(teamCode);
+  const isPublished = useIsPublished(teamCode, next?.dateKey);
 
   const [rsvpSaving, setRsvpSaving] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [guestSaving, setGuestSaving] = useState(false);
   const [attendeesOpen, setAttendeesOpen] = useState(false);
+  const [publishSaving, setPublishSaving] = useState(false);
+  const [teamNameDraft, setTeamNameDraft] = useState('');
+  const [teamCityDraft, setTeamCityDraft] = useState('');
+  const [savingTeamInfo, setSavingTeamInfo] = useState(false);
 
   const attendingPlayers = roster.filter((p) => rsvps[p.uid] === 'coming');
   const attendingCount = attendingPlayers.length;
@@ -98,6 +106,35 @@ export default function TrainingRsvpCard({
       await removeTrainingGuest(teamCode, next.dateKey, guestId);
     } catch (err) {
       console.error('Failed to remove guest:', err);
+    }
+  }
+
+  async function handleTogglePublish() {
+    if (!next || !teamInfo) return;
+    setPublishSaving(true);
+    try {
+      if (isPublished) {
+        await unpublishFromForum(teamCode, next.dateKey);
+      } else {
+        await publishToForum(teamCode, teamInfo.name, teamInfo.city, next.dateKey, next.time, uid);
+      }
+    } catch (err) {
+      console.error('Failed to toggle forum publish state:', err);
+    } finally {
+      setPublishSaving(false);
+    }
+  }
+
+  async function handleSaveTeamInfo(e: FormEvent) {
+    e.preventDefault();
+    if (!teamNameDraft.trim() || !teamCityDraft.trim()) return;
+    setSavingTeamInfo(true);
+    try {
+      await createTeam(teamCode, teamNameDraft.trim(), teamCityDraft.trim(), uid);
+    } catch (err) {
+      console.error('Failed to save team info:', err);
+    } finally {
+      setSavingTeamInfo(false);
     }
   }
 
@@ -271,6 +308,48 @@ export default function TrainingRsvpCard({
               </form>
             ) : (
               <p className="text-xs text-slate-400 leading-relaxed">ניתן להוסיף משלימות רק כל עוד ההרשמה פתוחה.</p>
+            )}
+          </div>
+        )}
+
+        {/* Publish this open poll to the cross-team substitutes forum */}
+        {isCaptain && next && pollOpen && (
+          <div className="border-t border-violet-50 pt-4 flex flex-col gap-2.5">
+            {teamInfo ? (
+              <button
+                type="button"
+                disabled={publishSaving}
+                onClick={handleTogglePublish}
+                className={`flex items-center justify-center gap-1.5 rounded-2xl py-3 min-h-[44px] text-sm font-bold transition disabled:opacity-60 ${
+                  isPublished
+                    ? 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                    : 'bg-violet-50 text-violet-700 hover:bg-violet-100'
+                }`}
+              >
+                {publishSaving ? <Loader2 size={15} className="animate-spin" /> : <Megaphone size={15} />}
+                {isPublished ? 'הסרה מפורום משלימות' : 'פרסום בפורום משלימות'}
+              </button>
+            ) : (
+              <form onSubmit={handleSaveTeamInfo} className="flex flex-col gap-2.5">
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  כדי לפרסם בפורום משלימות צריך להשלים פעם אחת את פרטי הקבוצה:
+                </p>
+                <input
+                  value={teamNameDraft}
+                  onChange={(e) => setTeamNameDraft(e.target.value)}
+                  placeholder="שם הקבוצה"
+                  className="rounded-xl border border-slate-200 px-3.5 py-2.5 min-h-[44px] text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
+                />
+                <CityCombobox value={teamCityDraft} onChange={setTeamCityDraft} placeholder="עיר הקבוצה" />
+                <button
+                  type="submit"
+                  disabled={!teamNameDraft.trim() || !teamCityDraft.trim() || savingTeamInfo}
+                  className="flex items-center justify-center gap-1.5 rounded-xl bg-violet-600 text-white py-2.5 min-h-[40px] text-xs font-bold hover:bg-violet-700 disabled:opacity-40 transition"
+                >
+                  {savingTeamInfo && <Loader2 size={13} className="animate-spin" />}
+                  שמירת פרטי קבוצה
+                </button>
+              </form>
             )}
           </div>
         )}

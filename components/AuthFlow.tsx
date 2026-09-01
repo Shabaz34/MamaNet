@@ -5,14 +5,17 @@ import { User, Users, ChevronRight, Loader2 } from 'lucide-react';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  updateProfile,
   onAuthStateChanged,
   signOut,
   setPersistence,
   browserLocalPersistence,
   browserSessionPersistence,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, getDocs, collection, query, where, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, isFirebaseConfigured } from '@/lib/firebase';
+import { createTeam, teamExists } from '@/lib/teamHooks';
+import CityCombobox from './CityCombobox';
 import CoachDashboard from './CoachDashboard';
 import CoachProfile from './CoachProfile';
 import PlayerDashboard from './PlayerDashboard';
@@ -21,7 +24,9 @@ import PlayerDashboard from './PlayerDashboard';
 
 type Role = 'player' | 'coach';
 type Intent = 'login' | 'register';
-type ScreenId = 1 | 2 | 3 | 4 | 5 | 6;
+// 7 = coach's one-time "create your team" step, wedged between signing up
+// and reaching the dashboard — see PendingCoach below for why.
+type ScreenId = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 interface FormData {
   fullName: string;
@@ -55,6 +60,15 @@ interface PlayerData {
   avatarUrl?: string;
 }
 
+// A coach who has a Firebase Auth account but hasn't finished creating her
+// team yet — the users/{uid} Firestore doc (what the rest of the app treats
+// as "this account exists") isn't written until she completes that step.
+interface PendingCoach {
+  uid: string;
+  fullName: string;
+  email: string;
+}
+
 const EMPTY_FORM: FormData = { fullName: '', email: '', password: '', teamCode: '' };
 
 function generateTeamCode() {
@@ -77,6 +91,7 @@ export default function AuthFlow() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [coach, setCoach] = useState<CoachData | null>(null);
   const [player, setPlayer] = useState<PlayerData | null>(null);
+  const [pendingCoach, setPendingCoach] = useState<PendingCoach | null>(null);
 
   // Restore an existing session on refresh, bypassing the login screen.
   useEffect(() => {
@@ -96,6 +111,17 @@ export default function AuthFlow() {
       try {
         const snap = await getDoc(doc(firestore, 'users', user.uid));
         if (!snap.exists()) {
+          // Authenticated but no profile yet — only reachable today via a
+          // coach who created her Auth account but didn't finish creating
+          // her team. Send her back to finish that step instead of
+          // stranding her on the role-selection screen (re-registering
+          // would fail: the email is already in use).
+          setPendingCoach({
+            uid: user.uid,
+            fullName: user.displayName ?? '',
+            email: user.email ?? '',
+          });
+          setScreen(7);
           setCheckingSession(false);
           return;
         }
@@ -191,23 +217,27 @@ export default function AuthFlow() {
           });
           setScreen(6);
         }
+      } else if (role === 'coach') {
+        // Auth account only — the users/{uid} profile doc (and teamCode)
+        // isn't created until she finishes the team-setup step (screen 7).
+        const credential = await createUserWithEmailAndPassword(auth, form.email, form.password);
+        await updateProfile(credential.user, { displayName: form.fullName });
+        setPendingCoach({ uid: credential.user.uid, fullName: form.fullName, email: form.email });
+        setScreen(7);
       } else {
+        const teamCode = form.teamCode.trim().toUpperCase();
+        // Reading teams/{teamCode} requires being signed in (per its rule),
+        // so the Auth account has to exist first — validate right after,
+        // and roll back the account if the code doesn't match anything.
         const credential = await createUserWithEmailAndPassword(auth, form.email, form.password);
         const uid = credential.user.uid;
-        const teamCode = role === 'coach' ? generateTeamCode() : form.teamCode.trim().toUpperCase();
 
-        if (role === 'player') {
-          const coachQuery = query(
-            collection(db, 'users'),
-            where('role', '==', 'coach'),
-            where('teamCode', '==', teamCode),
-          );
-          const coachSnap = await getDocs(coachQuery);
-          if (coachSnap.empty) {
-            await credential.user.delete();
-            throw new Error('קוד הקבוצה שהוזן לא נמצא. בדקי את הקוד עם המאמנת ונסי שוב.');
-          }
+        if (!(await teamExists(teamCode))) {
+          await credential.user.delete();
+          throw new Error('קוד הקבוצה שהוזן לא נמצא. בדקי את הקוד עם המאמנת ונסי שוב.');
         }
+
+        await updateProfile(credential.user, { displayName: form.fullName });
 
         await setDoc(doc(db, 'users', uid), {
           uid,
@@ -218,13 +248,8 @@ export default function AuthFlow() {
           createdAt: serverTimestamp(),
         });
 
-        if (role === 'coach') {
-          setCoach({ uid, fullName: form.fullName, email: form.email, teamCode });
-          setScreen(4);
-        } else {
-          setPlayer({ uid, fullName: form.fullName, email: form.email, teamCode });
-          setScreen(6);
-        }
+        setPlayer({ uid, fullName: form.fullName, email: form.email, teamCode });
+        setScreen(6);
       }
     } catch (err) {
       console.error('AuthFlow submit failed:', err);
@@ -250,6 +275,27 @@ export default function AuthFlow() {
     setForm(EMPTY_FORM);
     setCoach(null);
     setPlayer(null);
+    setPendingCoach(null);
+  }
+
+  async function handleCreateTeam(teamName: string, city: string) {
+    if (!db || !pendingCoach) throw new Error('החיבור התנתק, נסי להתחבר מחדש');
+    const teamCode = generateTeamCode();
+    const { uid, fullName, email } = pendingCoach;
+
+    await createTeam(teamCode, teamName, city, uid);
+    await setDoc(doc(db, 'users', uid), {
+      uid,
+      fullName,
+      email,
+      role: 'coach',
+      teamCode,
+      createdAt: serverTimestamp(),
+    });
+
+    setCoach({ uid, fullName, email, teamCode });
+    setPendingCoach(null);
+    setScreen(4);
   }
 
   if (checkingSession) {
@@ -299,6 +345,9 @@ export default function AuthFlow() {
               onBack={() => setScreen(2)}
               onSubmit={handleSubmit}
             />
+          )}
+          {screen === 7 && pendingCoach && (
+            <CoachTeamSetupScreen coachName={pendingCoach.fullName} onCreateTeam={handleCreateTeam} />
           )}
           {screen === 4 && coach && (
             <CoachDashboard
@@ -545,6 +594,79 @@ function Field({
         className="rounded-xl border border-slate-200 px-4 py-3 text-[15px] text-slate-800 placeholder:text-slate-400 transition focus:outline-none focus:border-[#003366]/50 focus:ring-2 focus:ring-[#003366]/20"
       />
     </label>
+  );
+}
+
+// ─── Screen 7 — coach team setup (before her account/dashboard exist) ──────
+
+function CoachTeamSetupScreen({
+  coachName,
+  onCreateTeam,
+}: {
+  coachName: string;
+  onCreateTeam: (teamName: string, city: string) => Promise<void>;
+}) {
+  const [teamName, setTeamName] = useState('');
+  const [city, setCity] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!teamName.trim() || !city.trim()) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await onCreateTeam(teamName.trim(), city.trim());
+    } catch (err) {
+      console.error('Failed to create team:', err);
+      setError(err instanceof Error ? err.message : 'משהו השתבש, נסי שוב');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="text-center">
+        <h1 className="text-2xl font-extrabold text-slate-800 text-balance">
+          ברוכה הבאה{coachName ? `, ${coachName}` : ''}! 👋
+        </h1>
+        <p className="mt-2 text-sm text-slate-500">כמעט סיימנו — רק עוד קצת פרטים על הקבוצה שלך</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <label className="flex flex-col gap-1.5 text-right">
+          <span className="text-xs font-bold text-slate-500">שם הקבוצה</span>
+          <input
+            type="text"
+            required
+            value={teamName}
+            placeholder="לדוגמה: מאמאנט חולון"
+            onChange={(e) => setTeamName(e.target.value)}
+            className="rounded-xl border border-slate-200 px-4 py-3 text-[15px] text-slate-800 placeholder:text-slate-400 transition focus:outline-none focus:border-[#003366]/50 focus:ring-2 focus:ring-[#003366]/20"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1.5 text-right">
+          <span className="text-xs font-bold text-slate-500">עיר בה הקבוצה משחקת</span>
+          <CityCombobox value={city} onChange={setCity} />
+        </label>
+
+        {error && (
+          <p className="text-sm font-semibold text-rose-600 bg-rose-50 rounded-xl px-4 py-2.5 text-center">{error}</p>
+        )}
+
+        <button
+          type="submit"
+          disabled={submitting || !teamName.trim() || !city.trim()}
+          className="mt-2 flex items-center justify-center gap-2 rounded-2xl bg-[#003366] text-white px-5 py-4 text-[15px] font-bold transition hover:bg-[#002850] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003366]/40"
+        >
+          {submitting && <Loader2 size={16} className="animate-spin" />}
+          יצירת קבוצה
+        </button>
+      </form>
+    </div>
   );
 }
 

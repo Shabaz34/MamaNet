@@ -84,6 +84,45 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // A team's own profile — name + home city. Any signed-in user can read
+    // it (needed for the cross-team substitutes forum and for validating a
+    // team code at player signup); only the coach who created it can write,
+    // self-declared via coachUid on the doc itself since this is created
+    // *before* that coach's own users/{uid} profile exists (team setup runs
+    // right after her Auth account is made, ahead of the Firestore profile).
+    match /teams/{teamCode} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.coachUid == request.auth.uid;
+      allow update: if request.auth != null && resource.data.coachUid == request.auth.uid;
+    }
+
+    // Cross-team "substitutes forum": a captain/coach publishes her team's
+    // currently-open training poll here so players from other teams in the
+    // same city can find it and join as a guest. Doc id is
+    // "{teamCode}_{dateKey}", one per session. Any signed-in user can read
+    // (the client filters by city); only that session's own captain/coach
+    // can publish or unpublish it.
+    match /forum_posts/{postId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.teamCode is string
+        && (
+          get(/databases/$(database)/documents/team_captains/$(request.resource.data.teamCode)).data.captainUid == request.auth.uid
+          || (
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach'
+            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.teamCode == request.resource.data.teamCode
+          )
+        );
+      allow delete: if request.auth != null
+        && (
+          get(/databases/$(database)/documents/team_captains/$(resource.data.teamCode)).data.captainUid == request.auth.uid
+          || (
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach'
+            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.teamCode == resource.data.teamCode
+          )
+        );
+    }
+
     // Which single player is team captain. Any teammate can read it (for the
     // crown badge + roster ordering); only that team's own coach can set it.
     match /team_captains/{captainTeamCode} {
@@ -166,13 +205,32 @@ service cloud.firestore {
       }
       match /guests/{guestId} {
         allow read: if request.auth != null;
-        allow write: if request.auth != null
+        // Captain/coach can add or remove anyone. Any other signed-in
+        // player can add *herself* (addedBy must match her own uid), but
+        // only for a session her team's captain/coach actually published
+        // to the substitutes forum — that's what makes a stranger's
+        // self-registration here legitimate rather than open write access
+        // to any team's roster. She can also remove her own entry again.
+        allow create: if request.auth != null
           && (
             get(/databases/$(database)/documents/team_captains/$(teamCode)).data.captainUid == request.auth.uid
             || (
               get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach'
               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.teamCode == teamCode
             )
+            || (
+              request.resource.data.addedBy == request.auth.uid
+              && exists(/databases/$(database)/documents/forum_posts/$(teamCode + '_' + sessionDate))
+            )
+          );
+        allow delete: if request.auth != null
+          && (
+            get(/databases/$(database)/documents/team_captains/$(teamCode)).data.captainUid == request.auth.uid
+            || (
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach'
+              && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.teamCode == teamCode
+            )
+            || resource.data.addedBy == request.auth.uid
           );
       }
     }
