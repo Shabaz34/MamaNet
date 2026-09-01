@@ -91,7 +91,7 @@ export default function TrainingRsvpCard({
     if (!name || !next) return;
     setGuestSaving(true);
     try {
-      await addTrainingGuest(teamCode, next.dateKey, name, uid);
+      await addTrainingGuest(teamCode, next.dateKey, next.time, name, uid);
       setGuestName('');
     } catch (err) {
       console.error('Failed to add guest:', err);

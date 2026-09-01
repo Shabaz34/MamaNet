@@ -226,12 +226,26 @@ export function useTrainingGuests(teamCode: string | undefined, dateKey: string 
   return guests;
 }
 
-export async function addTrainingGuest(teamCode: string, dateKey: string, name: string, captainUid: string) {
+// teamCode/dateKey/time are denormalized onto the guest doc itself (not just
+// implied by its Firestore path) so a collection-group query across every
+// team's guests — "which sessions has this player joined as a substitute,
+// anywhere" — can resolve straight from the doc, without a second lookup
+// per result. See useMyForumJoins in forumHooks.ts.
+export async function addTrainingGuest(
+  teamCode: string,
+  dateKey: string,
+  time: string,
+  name: string,
+  addedByUid: string,
+) {
   if (!db) return;
   await addDoc(collection(db, 'team_training_sessions', teamCode, 'dates', dateKey, 'guests'), {
     name,
-    addedBy: captainUid,
+    addedBy: addedByUid,
     addedAt: serverTimestamp(),
+    teamCode,
+    dateKey,
+    time,
   });
 }
 

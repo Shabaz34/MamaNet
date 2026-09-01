@@ -79,9 +79,10 @@ function ForumPostCard({ post, playerUid, playerName }: { post: ForumPost; playe
   const total = attendingPlayers.length + guests.length;
   const isFull = total >= ATTENDANCE_TARGET;
 
-  // Once full, drop off the browsable forum — unless this viewer is the one
-  // who filled a spot here, in which case she keeps seeing her own entry.
-  if (isFull && !myGuestEntry) return null;
+  // Once full, drop off the browsable forum entirely — including for
+  // whoever filled the last spot. She keeps seeing (and can still cancel)
+  // her own registration from her own dashboard instead (MyForumJoinsCard).
+  if (isFull) return null;
 
   async function handleJoin(e: FormEvent) {
     e.preventDefault();
@@ -89,7 +90,7 @@ function ForumPostCard({ post, playerUid, playerName }: { post: ForumPost; playe
     if (!name) return;
     setSaving(true);
     try {
-      await addTrainingGuest(post.teamCode, post.dateKey, name, playerUid);
+      await addTrainingGuest(post.teamCode, post.dateKey, post.time, name, playerUid);
     } catch (err) {
       console.error('Failed to join as substitute:', err);
     } finally {

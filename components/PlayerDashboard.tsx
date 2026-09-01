@@ -14,6 +14,7 @@ import NextGameCard from './NextGameCard';
 import EnterGamesView from './EnterGamesView';
 import MatchHistoryView from './MatchHistoryView';
 import SubstitutesForumView from './SubstitutesForumView';
+import MyForumJoinsCard from './MyForumJoinsCard';
 import DrawerMenu, { DrawerItem } from './DrawerMenu';
 import PushPermissionPrompt from './PushPermissionPrompt';
 
@@ -154,6 +155,9 @@ export default function PlayerDashboard({
 
         {/* Weekly training RSVP + attendance counter */}
         <TrainingRsvpCard teamCode={teamCode} uid={playerUid} isCaptain={isCaptain} />
+
+        {/* Other teams' trainings joined as a substitute via the forum */}
+        <MyForumJoinsCard playerUid={playerUid} teamCode={teamCode} />
 
         {/* Recurring training schedule — captain-owned, practice only (games stay coach-only) */}
         {isCaptain && <EventEditor teamCode={teamCode} uid={playerUid} allowGames={false} />}

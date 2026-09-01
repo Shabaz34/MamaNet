@@ -1,7 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, deleteDoc, doc, onSnapshot, query, serverTimestamp, setDoc, where } from 'firebase/firestore';
+import {
+  collection,
+  collectionGroup,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  query,
+  serverTimestamp,
+  setDoc,
+  where,
+} from 'firebase/firestore';
 import { db } from './firebase';
 
 export interface ForumPost {
@@ -9,6 +19,13 @@ export interface ForumPost {
   teamCode: string;
   teamName: string;
   city: string;
+  dateKey: string;
+  time: string;
+}
+
+export interface MyForumJoin {
+  id: string;
+  teamCode: string;
   dateKey: string;
   time: string;
 }
@@ -102,4 +119,46 @@ export async function publishToForum(
 export async function unpublishFromForum(teamCode: string, dateKey: string) {
   if (!db) return;
   await deleteDoc(doc(db, 'forum_posts', forumPostId(teamCode, dateKey)));
+}
+
+// Every training session this player has joined as a substitute, on *any*
+// team — a collection-group query across every team's guests subcollection,
+// filtered to entries she added herself. This is what lets a joined session
+// keep showing up for her (on her own dashboard) even after it's dropped
+// off the browsable forum for being full. Excludes her own team: a
+// captain/coach's own uid also ends up as `addedBy` on guests *she* added
+// manually to her own team's roster, which isn't a forum join at all.
+export function useMyForumJoins(uid: string | undefined, myTeamCode: string | undefined) {
+  const [joins, setJoins] = useState<MyForumJoin[]>([]);
+
+  useEffect(() => {
+    if (!db || !uid) {
+      setJoins([]);
+      return;
+    }
+
+    const q = query(collectionGroup(db, 'guests'), where('addedBy', '==', uid));
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        setJoins(
+          snapshot.docs
+            .map((d) => {
+              const data = d.data() as { teamCode?: string; dateKey?: string; time?: string };
+              // Path-derived fallback for any guest doc written before these
+              // fields existed: .../team_training_sessions/{teamCode}/dates/{dateKey}/guests/{id}
+              const teamCode = data.teamCode ?? d.ref.parent.parent?.parent.parent?.id ?? '';
+              const dateKey = data.dateKey ?? d.ref.parent.parent?.id ?? '';
+              return { id: d.id, teamCode, dateKey, time: data.time ?? '' };
+            })
+            .filter((j) => j.teamCode && j.teamCode !== myTeamCode),
+        );
+      },
+      (err) => console.error('useMyForumJoins listener failed:', err),
+    );
+
+    return unsubscribe;
+  }, [uid, myTeamCode]);
+
+  return joins;
 }
