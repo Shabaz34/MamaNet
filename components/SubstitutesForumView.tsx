@@ -28,7 +28,10 @@ export default function SubstitutesForumView({
 }) {
   const myTeam = useTeamInfo(teamCode);
   const posts = useForumPosts(myTeam?.city);
-  const otherTeamsPosts = posts.filter((p) => p.teamCode !== teamCode);
+  const now = new Date();
+  const otherTeamsPosts = posts.filter(
+    (p) => p.teamCode !== teamCode && p.dateKey && p.time && sessionDateTime(p.dateKey, p.time) > now,
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -158,7 +161,7 @@ function ForumPostCard({ post, playerUid, playerName }: { post: ForumPost; playe
             value={guestName}
             onChange={(e) => setGuestName(e.target.value)}
             placeholder="השם שיופיע ברשימה"
-            className="flex-1 rounded-xl border border-slate-200 px-3 py-2.5 min-h-[40px] text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
+            className="flex-1 min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 min-h-[40px] text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
           />
           <button
             type="submit"

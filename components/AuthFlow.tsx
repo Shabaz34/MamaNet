@@ -71,6 +71,31 @@ interface PendingCoach {
 
 const EMPTY_FORM: FormData = { fullName: '', email: '', password: '', teamCode: '' };
 
+// Firebase Auth error codes → Hebrew messages a player can actually act on.
+// auth/invalid-credential covers both "wrong password" and "no such user":
+// Firebase merged those into one code so a login form can't be used to probe
+// which emails are registered, so this can't be split further than "email or
+// password is wrong" without leaking that information ourselves.
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  'auth/invalid-credential': 'האימייל או הסיסמה שגויים. בדקי את הפרטים ונסי שוב.',
+  'auth/user-not-found': 'לא נמצא חשבון עם כתובת האימייל הזו.',
+  'auth/wrong-password': 'הסיסמה שגויה.',
+  'auth/invalid-email': 'כתובת האימייל אינה תקינה.',
+  'auth/missing-email': 'נא להזין כתובת אימייל.',
+  'auth/missing-password': 'נא להזין סיסמה.',
+  'auth/weak-password': 'הסיסמה חלשה מדי — נדרשים לפחות 6 תווים.',
+  'auth/email-already-in-use': 'כתובת האימייל הזו כבר רשומה במערכת. נסי להתחבר במקום להירשם.',
+  'auth/user-disabled': 'החשבון הזה הושבת. פני לתמיכה.',
+  'auth/too-many-requests': 'יותר מדי ניסיונות כושלים. נסי שוב בעוד כמה דקות.',
+  'auth/network-request-failed': 'בעיית תקשורת — בדקי את החיבור לאינטרנט ונסי שוב.',
+};
+
+function friendlyAuthError(err: unknown): string {
+  const code = typeof err === 'object' && err !== null && 'code' in err ? String((err as { code: unknown }).code) : null;
+  if (code && AUTH_ERROR_MESSAGES[code]) return AUTH_ERROR_MESSAGES[code];
+  return err instanceof Error ? err.message : 'משהו השתבש, נסי שוב';
+}
+
 function generateTeamCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let suffix = '';
@@ -269,9 +294,7 @@ export default function AuthFlow() {
       }
     } catch (err) {
       console.error('AuthFlow submit failed:', err);
-      const code = typeof err === 'object' && err !== null && 'code' in err ? String((err as { code: unknown }).code) : null;
-      const message = err instanceof Error ? err.message : 'משהו השתבש, נסי שוב';
-      setAuthError(code ? `${message} [${code}]` : message);
+      setAuthError(friendlyAuthError(err));
     } finally {
       setSubmitting(false);
       manualFlowInProgress.current = false;

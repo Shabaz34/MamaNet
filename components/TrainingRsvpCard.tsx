@@ -295,7 +295,7 @@ export default function TrainingRsvpCard({
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
                   placeholder="שם המשלימה"
-                  className="flex-1 rounded-xl border border-slate-200 px-3.5 py-2.5 min-h-[44px] text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
+                  className="flex-1 min-w-0 rounded-xl border border-slate-200 px-3.5 py-2.5 min-h-[44px] text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
                 />
                 <button
                   type="submit"
