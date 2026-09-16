@@ -101,24 +101,24 @@ export default function EnterGamesView({
         </label>
 
         <div className="flex gap-2">
-          <label className="flex-1 flex flex-col gap-1.5 text-right">
+          <label className="flex-1 min-w-0 flex flex-col gap-1.5 text-right">
             <span className="text-xs font-bold text-slate-500">תאריך המשחק</span>
             <input
               type="date"
               required
               value={form.date}
               onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-              className="rounded-xl border border-slate-200 px-3 py-3.5 min-h-[52px] text-[15px] text-slate-800 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
+              className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-3.5 min-h-[52px] text-[15px] text-slate-800 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
             />
           </label>
-          <label className="flex-1 flex flex-col gap-1.5 text-right">
+          <label className="flex-1 min-w-0 flex flex-col gap-1.5 text-right">
             <span className="text-xs font-bold text-slate-500">שעת המשחק</span>
             <input
               type="time"
               required
               value={form.time}
               onChange={(e) => setForm((f) => ({ ...f, time: e.target.value }))}
-              className="rounded-xl border border-slate-200 px-3 py-3.5 min-h-[52px] text-[15px] text-slate-800 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
+              className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-3.5 min-h-[52px] text-[15px] text-slate-800 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
             />
           </label>
         </div>
@@ -158,14 +158,14 @@ export default function EnterGamesView({
                         required
                         value={editForm.date}
                         onChange={(e) => setEditForm((f) => ({ ...f, date: e.target.value }))}
-                        className="flex-1 rounded-xl border border-slate-200 px-3 py-2.5 min-h-[44px] text-sm text-slate-800 bg-white focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
+                        className="flex-1 min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 min-h-[44px] text-sm text-slate-800 bg-white focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
                       />
                       <input
                         type="time"
                         required
                         value={editForm.time}
                         onChange={(e) => setEditForm((f) => ({ ...f, time: e.target.value }))}
-                        className="flex-1 rounded-xl border border-slate-200 px-3 py-2.5 min-h-[44px] text-sm text-slate-800 bg-white focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
+                        className="flex-1 min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 min-h-[44px] text-sm text-slate-800 bg-white focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
                       />
                     </div>
                     <div className="flex gap-2">

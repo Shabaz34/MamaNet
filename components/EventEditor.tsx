@@ -130,14 +130,14 @@ export default function EventEditor({
                   required
                   value={form.date}
                   onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-                  className="flex-1 rounded-xl border border-slate-200 px-3 py-3 min-h-[48px] text-sm text-slate-800 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
+                  className="flex-1 min-w-0 rounded-xl border border-slate-200 px-3 py-3 min-h-[48px] text-sm text-slate-800 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
                 />
                 <input
                   type="time"
                   required
                   value={form.time}
                   onChange={(e) => setForm((f) => ({ ...f, time: e.target.value }))}
-                  className="flex-1 rounded-xl border border-slate-200 px-3 py-3 min-h-[48px] text-sm text-slate-800 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
+                  className="flex-1 min-w-0 rounded-xl border border-slate-200 px-3 py-3 min-h-[48px] text-sm text-slate-800 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
                 />
               </div>
 

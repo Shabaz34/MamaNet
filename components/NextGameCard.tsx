@@ -107,14 +107,14 @@ export default function NextGameCard({
               required
               value={editForm.date}
               onChange={(e) => setEditForm((f) => ({ ...f, date: e.target.value }))}
-              className="flex-1 rounded-xl border border-slate-200 px-3 py-2.5 min-h-[44px] text-sm text-slate-800 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition"
+              className="flex-1 min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 min-h-[44px] text-sm text-slate-800 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition"
             />
             <input
               type="time"
               required
               value={editForm.time}
               onChange={(e) => setEditForm((f) => ({ ...f, time: e.target.value }))}
-              className="flex-1 rounded-xl border border-slate-200 px-3 py-2.5 min-h-[44px] text-sm text-slate-800 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition"
+              className="flex-1 min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 min-h-[44px] text-sm text-slate-800 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition"
             />
           </div>
           <div className="flex gap-2">

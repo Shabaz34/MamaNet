@@ -164,7 +164,7 @@ function SetInputRow({
           value={value.our}
           onChange={(e) => onChange({ ...value, our: e.target.value })}
           placeholder="אנחנו"
-          className={`flex-1 rounded-xl border px-3 py-3 min-h-[48px] text-center text-lg font-bold text-slate-800 focus:outline-none focus:ring-2 transition disabled:bg-slate-50 ${
+          className={`flex-1 min-w-0 rounded-xl border px-3 py-3 min-h-[48px] text-center text-lg font-bold text-slate-800 focus:outline-none focus:ring-2 transition disabled:bg-slate-50 ${
             winner === 'our'
               ? 'border-emerald-300 bg-emerald-50 focus:ring-emerald-100'
               : 'border-slate-200 focus:border-violet-400 focus:ring-violet-100'
@@ -179,7 +179,7 @@ function SetInputRow({
           value={value.opponent}
           onChange={(e) => onChange({ ...value, opponent: e.target.value })}
           placeholder="יריבה"
-          className={`flex-1 rounded-xl border px-3 py-3 min-h-[48px] text-center text-lg font-bold text-slate-800 focus:outline-none focus:ring-2 transition disabled:bg-slate-50 ${
+          className={`flex-1 min-w-0 rounded-xl border px-3 py-3 min-h-[48px] text-center text-lg font-bold text-slate-800 focus:outline-none focus:ring-2 transition disabled:bg-slate-50 ${
             winner === 'opponent'
               ? 'border-rose-300 bg-rose-50 focus:ring-rose-100'
               : 'border-slate-200 focus:border-violet-400 focus:ring-violet-100'

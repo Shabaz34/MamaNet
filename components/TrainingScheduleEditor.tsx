@@ -12,7 +12,7 @@ import {
 } from '@/lib/trainingHooks';
 
 const inputClass =
-  'flex-1 rounded-xl border border-slate-200 px-3 py-3 min-h-[48px] text-sm text-slate-800 bg-white focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition';
+  'flex-1 min-w-0 rounded-xl border border-slate-200 px-3 py-3 min-h-[48px] text-sm text-slate-800 bg-white focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition';
 
 // Configures the recurring weekly training slot (same weekday + time every
 // week, no need to re-set it) and, separately, lets you move just the next
