@@ -95,8 +95,9 @@ export default function MatchHistoryView({
                     onToggle={() => setExpandedId((cur) => (cur === g.id ? null : g.id))}
                     canEditResult={isAdmin && Boolean(adminUid) && hasBeenPlayed(g)}
                     onEdit={() => setEditingGame(g)}
-                    canEditLineup={Boolean(isCoach) && Boolean(adminUid) && hasBeenPlayed(g)}
-                    onEditLineup={() => setLineupGame(g)}
+                    canEditLineup={Boolean(isCoach) && Boolean(adminUid)}
+                    canViewLineup={!isCoach}
+                    onOpenLineup={() => setLineupGame(g)}
                   />
                 ))}
               </ul>
@@ -109,14 +110,15 @@ export default function MatchHistoryView({
         <MatchResultModal game={editingGame} adminUid={adminUid} onClose={() => setEditingGame(null)} />
       )}
 
-      {isCoach && adminUid && lineupGame && (
+      {lineupGame && (
         <LineupEditorModal
           gameId={lineupGame.id}
           teamCode={teamCode}
-          coachUid={adminUid}
+          coachUid={isCoach ? adminUid : undefined}
           opponentName={lineupGame.opponentName}
-          mode="sets"
+          mode={hasBeenPlayed(lineupGame) ? 'sets' : 'planned'}
           setCount={lineupGame.sets?.length ?? 3}
+          readOnly={!isCoach}
           onClose={() => setLineupGame(null)}
         />
       )}
@@ -131,7 +133,8 @@ function MatchHistoryRow({
   canEditResult,
   onEdit,
   canEditLineup,
-  onEditLineup,
+  canViewLineup,
+  onOpenLineup,
 }: {
   game: TeamGame;
   isOpen: boolean;
@@ -139,7 +142,8 @@ function MatchHistoryRow({
   canEditResult: boolean;
   onEdit: () => void;
   canEditLineup: boolean;
-  onEditLineup: () => void;
+  canViewLineup: boolean;
+  onOpenLineup: () => void;
 }) {
   const isCompleted = g.status === 'completed' && Boolean(g.sets) && Boolean(g.setsWon);
 
@@ -230,11 +234,22 @@ function MatchHistoryRow({
       {canEditLineup && (
         <button
           type="button"
-          onClick={onEditLineup}
+          onClick={onOpenLineup}
           className="w-full flex items-center justify-center gap-1.5 px-4 py-3 border-t border-slate-100 text-xs font-bold text-violet-600 hover:bg-violet-50 transition"
         >
           <LayoutGrid size={13} />
           קבע שישייה
+        </button>
+      )}
+
+      {!canEditLineup && canViewLineup && (
+        <button
+          type="button"
+          onClick={onOpenLineup}
+          className="w-full flex items-center justify-center gap-1.5 px-4 py-3 border-t border-slate-100 text-xs font-bold text-slate-500 hover:bg-slate-50 transition"
+        >
+          <LayoutGrid size={13} />
+          צפייה בשישייה
         </button>
       )}
     </li>

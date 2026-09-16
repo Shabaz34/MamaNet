@@ -237,7 +237,7 @@ export default function TrainingPlanView({
               value={draftTopic}
               onChange={(e) => setDraftTopic(e.target.value)}
               placeholder="נושא לאימון (רשות) — לדוגמה: הגנה"
-              className="flex-1 rounded-xl border border-slate-200 px-3.5 py-3 min-h-[48px] text-sm text-slate-800 placeholder:text-slate-400 bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition"
+              className="flex-1 min-w-0 rounded-xl border border-slate-200 px-3.5 py-3 min-h-[48px] text-sm text-slate-800 placeholder:text-slate-400 bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition"
             />
             <button
               type="button"

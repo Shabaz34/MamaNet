@@ -16,10 +16,14 @@ export default function LineupCourt({
   roster,
   lineup,
   onChange,
+  readOnly = false,
 }: {
   roster: RosterPlayer[];
   lineup: Lineup;
   onChange: (lineup: Lineup) => void;
+  /** Shows the current assignments without letting the viewer pick or clear
+   * a player — for players looking up the coach's lineup, not setting it. */
+  readOnly?: boolean;
 }) {
   const [pickerPosition, setPickerPosition] = useState<Position | null>(null);
 
@@ -59,12 +63,13 @@ export default function LineupCourt({
                 <div key={position} className="flex flex-col items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => !name && setPickerPosition(position)}
+                    disabled={readOnly}
+                    onClick={() => !readOnly && !name && setPickerPosition(position)}
                     className={`relative w-full aspect-square rounded-full flex items-center justify-center text-center p-1.5 transition ${
                       name
                         ? 'bg-white text-emerald-700 shadow-md'
-                        : 'bg-emerald-500/40 text-white border-2 border-dashed border-white/60 hover:bg-emerald-500/60'
-                    }`}
+                        : `bg-emerald-500/40 text-white border-2 border-dashed border-white/60 ${readOnly ? '' : 'hover:bg-emerald-500/60'}`
+                    } ${readOnly ? 'cursor-default' : ''}`}
                   >
                     {name ? (
                       <span className="text-xs font-extrabold leading-tight break-words px-1">{name}</span>
@@ -72,7 +77,7 @@ export default function LineupCourt({
                       <span className="text-xs font-bold">עמדה {position}</span>
                     )}
                   </button>
-                  {name && (
+                  {name && !readOnly && (
                     <button
                       type="button"
                       onClick={() => handleClear(position)}

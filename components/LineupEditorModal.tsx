@@ -16,14 +16,19 @@ export default function LineupEditorModal({
   opponentName,
   mode,
   setCount = 3,
+  readOnly = false,
   onClose,
 }: {
   gameId: string;
   teamCode: string;
-  coachUid: string;
+  /** Only needed to save — omit for a read-only viewer. */
+  coachUid?: string;
   opponentName: string;
   mode: 'planned' | 'sets';
   setCount?: number;
+  /** Players look up the coach's lineup here too, without the ability to
+   * change it — hides the save button and the court's pick/clear controls. */
+  readOnly?: boolean;
   onClose: () => void;
 }) {
   const roster = useTeamRoster(teamCode);
@@ -52,6 +57,7 @@ export default function LineupEditorModal({
   const availableSetKeys: SetKey[] = setCount >= 3 ? ['set1', 'set2', 'set3'] : ['set1', 'set2'];
 
   async function handleSave() {
+    if (!coachUid) return;
     setSaving(true);
     try {
       if (mode === 'planned') {
@@ -80,7 +86,14 @@ export default function LineupEditorModal({
       >
         <div className="flex items-center justify-between">
           <h3 className="text-base font-extrabold text-slate-800">
-            {mode === 'planned' ? 'קביעת שישייה' : 'קביעת שישיות לפי מערכה'} · מול {opponentName}
+            {readOnly
+              ? mode === 'planned'
+                ? 'השישייה למשחק'
+                : 'השישיות לפי מערכה'
+              : mode === 'planned'
+                ? 'קביעת שישייה'
+                : 'קביעת שישיות לפי מערכה'}{' '}
+            · מול {opponentName}
           </h3>
           <button
             type="button"
@@ -116,17 +129,20 @@ export default function LineupEditorModal({
             if (mode === 'planned') setPlannedLineup(next);
             else setSetLineupsState((prev) => ({ ...prev, [activeSet]: next }));
           }}
+          readOnly={readOnly}
         />
 
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center justify-center gap-2 rounded-2xl bg-violet-600 text-white px-5 py-4 min-h-[52px] text-[15px] font-bold hover:bg-violet-700 disabled:opacity-60 transition"
-        >
-          {saving && <Loader2 size={16} className="animate-spin" />}
-          {savedFlash ? 'נשמר ✓' : 'שמירת שישייה'}
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center justify-center gap-2 rounded-2xl bg-violet-600 text-white px-5 py-4 min-h-[52px] text-[15px] font-bold hover:bg-violet-700 disabled:opacity-60 transition"
+          >
+            {saving && <Loader2 size={16} className="animate-spin" />}
+            {savedFlash ? 'נשמר ✓' : 'שמירת שישייה'}
+          </button>
+        )}
       </div>
     </div>
   );
