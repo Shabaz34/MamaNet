@@ -96,11 +96,17 @@ export default function CoachDashboard({
 
         <TeamRoster players={roster} captainUid={captainUid} />
 
-        {/* Attendance counter + list for the next event; coach can add guests but doesn't RSVP for herself */}
-        <NextEventCard teamCode={teamCode} uid={coachUid} isCoach hideSelfRsvp />
-
-        {/* Weekly training attendance counter + list; coach can add guests but doesn't RSVP for herself */}
-        <TrainingRsvpCard teamCode={teamCode} uid={coachUid} isCaptain hideSelfRsvp />
+        {/* Next event + weekly training, in one shared card shell — see
+            PlayerDashboard for why (avoids two look-alike floating cards).
+            Coach can add guests in both but doesn't RSVP for herself. */}
+        <div className="rounded-3xl bg-white border border-violet-100 shadow-sm overflow-hidden">
+          <div className="empty:hidden p-5">
+            <NextEventCard teamCode={teamCode} uid={coachUid} isCoach hideSelfRsvp bare />
+          </div>
+          <div className="border-t border-violet-50 p-5">
+            <TrainingRsvpCard teamCode={teamCode} uid={coachUid} isCaptain hideSelfRsvp bare />
+          </div>
+        </div>
 
         <EventEditor teamCode={teamCode} uid={coachUid} />
 

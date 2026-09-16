@@ -150,11 +150,20 @@ export default function PlayerDashboard({
 
         <PushPermissionPrompt uid={playerUid} />
 
-        {/* Hero: upcoming match/training + RSVP */}
-        <NextEventCard teamCode={teamCode} uid={playerUid} isCaptain={isCaptain} />
-
-        {/* Weekly training RSVP + attendance counter */}
-        <TrainingRsvpCard teamCode={teamCode} uid={playerUid} isCaptain={isCaptain} />
+        {/* Hero: upcoming match/training + RSVP, and the weekly training RSVP
+            underneath — one shared card shell so they read as one "what's
+            coming up" section instead of two look-alike floating cards. The
+            event slot collapses itself (`empty:hidden`) on the (common) days
+            the weekly poll has already taken over and NextEventCard renders
+            nothing. */}
+        <div className="rounded-3xl bg-white border border-violet-100 shadow-sm overflow-hidden">
+          <div className="empty:hidden p-5">
+            <NextEventCard teamCode={teamCode} uid={playerUid} isCaptain={isCaptain} bare />
+          </div>
+          <div className="border-t border-violet-50 p-5">
+            <TrainingRsvpCard teamCode={teamCode} uid={playerUid} isCaptain={isCaptain} bare />
+          </div>
+        </div>
 
         {/* Other teams' trainings joined as a substitute via the forum */}
         <MyForumJoinsCard playerUid={playerUid} teamCode={teamCode} />

@@ -33,6 +33,7 @@ export default function TrainingRsvpCard({
   uid,
   isCaptain,
   hideSelfRsvp = false,
+  bare = false,
 }: {
   teamCode: string;
   uid: string;
@@ -41,6 +42,11 @@ export default function TrainingRsvpCard({
    * who aren't players attending training themselves, but can still see the
    * counter/list and (if isCaptain) manage guests. */
   hideSelfRsvp?: boolean;
+  /** Drop the card's own outer border/background/shadow — for when a parent
+   * composes this inside a shared card shell (see PlayerDashboard /
+   * CoachDashboard, stacked with NextEventCard) instead of floating it as its
+   * own standalone box. Purely visual — no behavior changes. */
+  bare?: boolean;
 }) {
   const settings = useTrainingSettings(teamCode);
   const { next: rawNext, pollOpen, trainingStarted, msUntilPollOpens, now } = useTrainingPollState(teamCode);
@@ -140,7 +146,7 @@ export default function TrainingRsvpCard({
 
   if (!settings && !isCaptain) {
     return (
-      <div className="rounded-3xl bg-white border border-violet-100 shadow-sm p-5 flex items-center gap-3">
+      <div className={bare ? 'flex items-center gap-3' : 'rounded-3xl bg-white border border-violet-100 shadow-sm p-5 flex items-center gap-3'}>
         <span className="w-10 h-10 rounded-2xl bg-violet-50 flex items-center justify-center shrink-0">
           <CalendarClock size={18} className="text-violet-600" />
         </span>
@@ -150,8 +156,8 @@ export default function TrainingRsvpCard({
   }
 
   return (
-    <div className="rounded-3xl bg-white border border-violet-100 shadow-sm overflow-hidden">
-      <div className="p-5 flex flex-col gap-4">
+    <div className={bare ? '' : 'rounded-3xl bg-white border border-violet-100 shadow-sm overflow-hidden'}>
+      <div className={bare ? 'flex flex-col gap-4' : 'p-5 flex flex-col gap-4'}>
         {/* Attendance counter + progress bar */}
         {next && (
           <div>

@@ -36,6 +36,7 @@ export default function NextEventCard({
   isCaptain = false,
   isCoach = false,
   hideSelfRsvp = false,
+  bare = false,
 }: {
   teamCode: string;
   uid: string;
@@ -45,6 +46,11 @@ export default function NextEventCard({
    * who aren't players attending themselves, but can still see the counter/list
    * and manage guests. */
   hideSelfRsvp?: boolean;
+  /** Drop the card's own outer border/background/shadow/padding — for when a
+   * parent composes this inside a shared card shell (see PlayerDashboard /
+   * CoachDashboard, stacked with TrainingRsvpCard) instead of floating it as
+   * its own standalone box. Purely visual — no behavior changes. */
+  bare?: boolean;
 }) {
   const event = useTeamEvent(teamCode);
   const myRsvp = useMyRsvp(teamCode, uid);
@@ -105,6 +111,9 @@ export default function NextEventCard({
     }
   }
 
+  const shellRow = bare ? 'flex items-center gap-3' : 'rounded-3xl bg-white border border-violet-100 shadow-sm p-5 flex items-center gap-3';
+  const shellCol = bare ? 'flex flex-col gap-4' : 'rounded-3xl bg-white border border-violet-100 shadow-sm p-5 flex flex-col gap-4';
+
   if (!event || !eventInRange) {
     // Once the weekly training poll takes over (24h before the session), it
     // already shows this same date — avoid showing it twice.
@@ -113,7 +122,7 @@ export default function NextEventCard({
     const nextInRange = next && isWithinNearTerm(sessionDateTime(next.dateKey, next.time), now);
     if (nextInRange) {
       return (
-        <div className="rounded-3xl bg-white border border-violet-100 shadow-sm p-5 flex items-center gap-3">
+        <div className={shellRow}>
           <span className="w-10 h-10 rounded-2xl bg-violet-50 flex items-center justify-center shrink-0">
             <CalendarClock size={18} className="text-violet-600" />
           </span>
@@ -129,7 +138,7 @@ export default function NextEventCard({
     }
 
     return (
-      <div className="rounded-3xl bg-white border border-violet-100 shadow-sm p-5 flex items-center gap-3">
+      <div className={shellRow}>
         <span className="w-10 h-10 rounded-2xl bg-violet-50 flex items-center justify-center shrink-0">
           <CalendarClock size={18} className="text-violet-600" />
         </span>
@@ -141,7 +150,7 @@ export default function NextEventCard({
   }
 
   return (
-    <div className="rounded-3xl bg-white border border-violet-100 shadow-sm p-5 flex flex-col gap-4">
+    <div className={shellCol}>
       <div className="flex items-center gap-2.5">
         <span className="w-10 h-10 rounded-2xl bg-violet-50 flex items-center justify-center shrink-0">
           <CalendarClock size={18} className="text-violet-600" />
