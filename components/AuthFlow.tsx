@@ -5,6 +5,7 @@ import { User, Users, ChevronRight, Loader2 } from 'lucide-react';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   updateProfile,
   onAuthStateChanged,
   signOut,
@@ -114,6 +115,8 @@ export default function AuthFlow() {
   const [rememberMe, setRememberMe] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [resetSending, setResetSending] = useState(false);
+  const [resetMessage, setResetMessage] = useState<{ text: string; isError: boolean } | null>(null);
   const [coach, setCoach] = useState<CoachData | null>(null);
   const [player, setPlayer] = useState<PlayerData | null>(null);
   const [pendingCoach, setPendingCoach] = useState<PendingCoach | null>(null);
@@ -205,11 +208,32 @@ export default function AuthFlow() {
 
   function chooseIntent(nextIntent: Intent) {
     setIntent(nextIntent);
+    setResetMessage(null);
     setScreen(3);
   }
 
   function updateField(field: keyof FormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function handleForgotPassword() {
+    if (!auth) return;
+    const email = form.email.trim();
+    if (!email) {
+      setResetMessage({ text: 'הזיני קודם את כתובת האימייל שלך למעלה.', isError: true });
+      return;
+    }
+    setResetSending(true);
+    setResetMessage(null);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setResetMessage({ text: `נשלח מייל לאיפוס סיסמה ל-${email}. בדקי גם בתיקיית הספאם.`, isError: false });
+    } catch (err) {
+      console.error('Password reset failed:', err);
+      setResetMessage({ text: friendlyAuthError(err), isError: true });
+    } finally {
+      setResetSending(false);
+    }
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -384,6 +408,9 @@ export default function AuthFlow() {
               onRememberMeChange={setRememberMe}
               onBack={() => setScreen(2)}
               onSubmit={handleSubmit}
+              onForgotPassword={handleForgotPassword}
+              resetSending={resetSending}
+              resetMessage={resetMessage}
             />
           )}
           {screen === 7 && pendingCoach && (
@@ -522,6 +549,9 @@ function FormScreen({
   onRememberMeChange,
   onBack,
   onSubmit,
+  onForgotPassword,
+  resetSending,
+  resetMessage,
 }: {
   role: Role;
   intent: Intent;
@@ -533,6 +563,9 @@ function FormScreen({
   onRememberMeChange: (value: boolean) => void;
   onBack: () => void;
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
+  onForgotPassword: () => void;
+  resetSending: boolean;
+  resetMessage: { text: string; isError: boolean } | null;
 }) {
   const showFullName = intent === 'register';
   const showTeamCode = intent === 'register' && role === 'player';
@@ -578,6 +611,27 @@ function FormScreen({
             placeholder="קוד שקיבלת מהמאמנת"
             onChange={(v) => onChange('teamCode', v)}
           />
+        )}
+
+        {intent === 'login' && (
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            disabled={resetSending}
+            className="self-end text-xs font-bold text-violet-600 hover:underline disabled:opacity-60 transition -mt-2"
+          >
+            {resetSending ? 'שולח מייל...' : 'שכחת סיסמה?'}
+          </button>
+        )}
+
+        {resetMessage && (
+          <p
+            className={`text-sm font-semibold rounded-xl px-4 py-2.5 text-center ${
+              resetMessage.isError ? 'text-rose-600 bg-rose-50' : 'text-emerald-700 bg-emerald-50'
+            }`}
+          >
+            {resetMessage.text}
+          </p>
         )}
 
         <label className="flex items-center justify-end gap-2.5 cursor-pointer select-none">
